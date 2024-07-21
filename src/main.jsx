@@ -6,6 +6,6 @@ import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Grid />
+    <Grid size = {4}/>
   </React.StrictMode>,
 )
