@@ -7,7 +7,7 @@ import {Game} from "./gameLogic.js"
  * @param {*} layout: layout will be a 2D, 4x4 array representing the grid, storing the numbers of each square. 
  */
 const colourMap = {
-    0: ["#888888", "#888888"],
+    null: ["#888888", "#888888"],
     2: ["#eee4da", "#333333"],
     4: ["#ede0c8", "#333333"],
     8: ["#f2b179", "#ffffff"],
@@ -30,9 +30,8 @@ export default function Grid({ size })
     let initialLayout = [];
     for(let i=0; i< size; i++)
     {
-        initialLayout.push(new Array(size).fill(0));
+        initialLayout.push(new Array(size).fill(null));
     }
-    console.log(initialLayout);
     
     const game = new Game(initialLayout);
     game.generateNewNum();
@@ -59,9 +58,10 @@ export default function Grid({ size })
 
     function handleKeyDown(e)
     {
+        console.log(layout);
+        console.log(game.layout);
         let direction = "";
-        
-        console.log(e.key);
+        let validKey = true;
         switch(e.key)
         {
             case "arrowLeft":
@@ -71,9 +71,19 @@ export default function Grid({ size })
             case "arrowUp":
             case "w": direction = "up"; break;
             case "arrowDown":
-            case "a": direction = "down"; break;
+            case "s": direction = "down"; break;
+            default: validKey = false;
         }
-        setLayout(handleMove(direction, layout));
+        if(validKey)
+        {
+            let temp = game.handleMove(direction);
+            let newVersion = [];
+            for (let i = 0; i < temp.length; i++) {
+                newVersion.push([...temp[i]]);
+            }
+            setLayout(newVersion);
+        }
+            
 
     }
 }

@@ -45,15 +45,15 @@
   display: grid;
   grid-template-columns: auto auto auto auto;
   background-color: #444444;
-  font-size: 80vh;
+  
 }
 
 .grid-item{
   display: inline-grid;
-  height: 20vh;
-  line-height: 20vh;
-  width: 17vh;
-  margin: 0.4vh;
+  height: 7vw;
+  line-height: 7vw;
+  width: 5vw;
+  margin: 0.2vw;
   border-radius: 10%;
-  
+  font-size: 5em;
 }
