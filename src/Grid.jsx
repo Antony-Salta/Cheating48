@@ -58,40 +58,34 @@ export default function Grid()
 
     function handleKeyDown(e)
     {
-        // console.log(layoutClass.layout);
-        // console.log(game.layout);
         let direction = "";
-        let validKey = true;
         switch(e.key)
         {
-            case "arrowLeft":
+            case "ArrowLeft":
             case "a": direction = "left"; break;
-            case "arrowRight":
+            case "ArrowRight":
             case "d": direction = "right"; break;
-            case "arrowUp":
+            case "ArrowUp":
             case "w": direction = "up"; break;
-            case "arrowDown":
+            case "ArrowDown":
             case "s": direction = "down"; break;
-            default: validKey = false;
+            default: return null;
         }
-        if(validKey)
+        let [temp, isSame] = game.handleMove(direction);
+        // let newVersion = [];
+        // for (let i = 0; i < temp.length; i++) {
+        //     newVersion.push([...temp[i]]);
+        // }
+        if(!isSame)
         {
-            let [temp, isSame] = game.handleMove(direction);
-            // let newVersion = [];
-            // for (let i = 0; i < temp.length; i++) {
-            //     newVersion.push([...temp[i]]);
-            // }
-            if(!isSame)
-            {
-                setLayout(new LayoutWrapper(temp));
-                if(ID >= (size*size*2))
-                    setID(0);
-                else
-                    setID(ID + (size*size));
-            }
-                
+            setLayout(new LayoutWrapper(temp));
+            if(ID >= (size*size*2))
+                setID(0);
+            else
+                setID(ID + (size*size));
         }
             
+        
 
     }
 }

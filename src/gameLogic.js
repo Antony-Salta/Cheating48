@@ -11,7 +11,7 @@ export class Game{
         for (let i = 0; i < this._size; i++) {
             prevLayout.push([...this.layout[i]]);   
         }
-        console.log(this.layout);
+        //console.log(this.layout); // for some reason this console log looks into the future and prints out the value of the layout at the end of this function.
 
         let startIndex = this._size -1; // this gives the starting point to start looking at
         let isAlongCol = true;
@@ -104,7 +104,6 @@ export class Game{
         {
             this.generateNewNum();
         }
-        console.log(this.layout)
         return [this.layout, isSame];
     }
     _
