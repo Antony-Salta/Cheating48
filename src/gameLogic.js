@@ -1,7 +1,7 @@
 export class Game{
     constructor(layout)
     {
-        this._layout = layout;
+        this.layout = layout;
         this._size = layout.length;
     }
 
@@ -9,8 +9,9 @@ export class Game{
     {
         let prevLayout = []
         for (let i = 0; i < this._size; i++) {
-            prevLayout.push([...this._layout[i]]);   
+            prevLayout.push([...this.layout[i]]);   
         }
+        console.log(this.layout);
 
         let startIndex = this._size -1; // this gives the starting point to start looking at
         let isAlongCol = true;
@@ -33,7 +34,7 @@ export class Game{
             if(isAlongCol)
             {
                 for (let j = 0; j < this._size; j++) {
-                    let val = this._layout[startIndex + (j*multiplier)][i];
+                    let val = this.layout[startIndex + (j*multiplier)][i];
                     if(val !== null)
                         line.push(val);
                 }
@@ -41,7 +42,7 @@ export class Game{
             else
             {
                 for (let j = 0; j < this._size; j++) {
-                    let val = this._layout[i][startIndex + (j*multiplier)];
+                    let val = this.layout[i][startIndex + (j*multiplier)];
                     if(val !== null)
                         line.push(val);
                 }
@@ -65,7 +66,7 @@ export class Game{
             {
                 for (let j = 0; j < this._size; j++) {
                     let newInsertion = j < line.length ? line[j] : null;
-                    this._layout[startIndex + (j*multiplier)][i] = newInsertion;
+                    this.layout[startIndex + (j*multiplier)][i] = newInsertion;
                 }
                 
             }
@@ -73,7 +74,7 @@ export class Game{
             {
                 for (let j = 0; j < this._size; j++) {
                     let newInsertion = j < line.length ? line[j] : null;
-                    this._layout[i][startIndex + (j*multiplier)] = newInsertion;
+                    this.layout[i][startIndex + (j*multiplier)] = newInsertion;
                 }
             }
         }
@@ -85,7 +86,7 @@ export class Game{
             let j =0;
             while(isSame && j < this._size)
             {
-                if(this._layout[count][j] !== prevLayout[count][j])
+                if(this.layout[count][j] !== prevLayout[count][j])
                 {
                     isSame = false;
                 }
@@ -95,7 +96,7 @@ export class Game{
         }
         /*
         for (let i = 0; i < this._size; i++) {
-            console.log(this._layout[i]);
+            console.log(this.layout[i]);
             //weird thing where layout looks into the future if I do console.log of the whole 2D array, and it counts the changes made in the next block when generating a new number.
         }
             */
@@ -103,8 +104,8 @@ export class Game{
         {
             this.generateNewNum();
         }
-        
-        return this._layout;
+        console.log(this.layout)
+        return [this.layout, isSame];
     }
     _
 
@@ -117,7 +118,7 @@ export class Game{
         let numFree = 0;
         for (let i = 0; i < this._size; i++) {
             for (let j = 0; j < this._size; j++) {
-                if(this._layout[i][j] === null)
+                if(this.layout[i][j] === null)
                 {
                     freeSpaces[numFree] = [i,j];
                     numFree++;
@@ -127,11 +128,6 @@ export class Game{
         }
         const random = Math.floor(Math.random() * numFree);
         const [rowIndex, colIndex] = freeSpaces[random];
-        this._layout.splice(rowIndex, 1, this._layout[rowIndex].toSpliced(colIndex, 1, 2) );
-    }
-
-    get layout()
-    {
-        return this._layout
+        this.layout.splice(rowIndex, 1, this.layout[rowIndex].toSpliced(colIndex, 1, 2) );
     }
 }

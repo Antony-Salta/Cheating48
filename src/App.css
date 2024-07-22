@@ -50,10 +50,9 @@
 
 .grid-item{
   display: inline-grid;
-  height: 7vw;
-  line-height: 7vw;
-  width: 5vw;
-  margin: 0.2vw;
+  height: 20vh;
+  line-height: 20vh;
+  width: 15vh;
+  margin: 0.6vh;
   border-radius: 10%;
-  font-size: 5em;
 }

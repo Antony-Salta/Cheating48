@@ -22,28 +22,28 @@ const colourMap = {
     "higher": ["#000000", "#ffffff"],
 }
 
-
-
-
-export default function Grid({ size })
+let initialLayout = [];
+const size = 4;
+for(let i=0; i< size; i++)
 {
-    let initialLayout = [];
-    for(let i=0; i< size; i++)
-    {
-        initialLayout.push(new Array(size).fill(null));
-    }
+    initialLayout.push(new Array(size).fill(null));
+}
+
+const game = new Game(initialLayout);
+game.generateNewNum();
+
+
+export default function Grid()
+{
     
-    const game = new Game(initialLayout);
-    game.generateNewNum();
 
-    const [layout, setLayout] = useState(game.layout);
-
-
-    let index = -1;
+    const [layoutClass, setLayout] = useState(new LayoutWrapper(game.layout));
+    const [ID, setID] = useState(0);
+    let index = ID;
     return (
         <div className="grid-container" onKeyDown={(e) => handleKeyDown(e)} tabIndex="0" autoFocus={true}>
         {
-            layout.map(row => row.map(square => 
+            layoutClass.layout.map(row => row.map(square => 
             {
                 let value = square;
                 index++;
@@ -58,8 +58,8 @@ export default function Grid({ size })
 
     function handleKeyDown(e)
     {
-        console.log(layout);
-        console.log(game.layout);
+        // console.log(layoutClass.layout);
+        // console.log(game.layout);
         let direction = "";
         let validKey = true;
         switch(e.key)
@@ -76,14 +76,29 @@ export default function Grid({ size })
         }
         if(validKey)
         {
-            let temp = game.handleMove(direction);
-            let newVersion = [];
-            for (let i = 0; i < temp.length; i++) {
-                newVersion.push([...temp[i]]);
+            let [temp, isSame] = game.handleMove(direction);
+            // let newVersion = [];
+            // for (let i = 0; i < temp.length; i++) {
+            //     newVersion.push([...temp[i]]);
+            // }
+            if(!isSame)
+            {
+                setLayout(new LayoutWrapper(temp));
+                if(ID >= (size*size*2))
+                    setID(0);
+                else
+                    setID(ID + (size*size));
             }
-            setLayout(newVersion);
+                
         }
             
 
+    }
+}
+
+class LayoutWrapper{
+    constructor(layout)
+    {
+        this.layout = layout;
     }
 }
