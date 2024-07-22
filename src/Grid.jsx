@@ -39,7 +39,7 @@ export default function Grid()
 
     const [layoutClass, setLayout] = useState(new LayoutWrapper(game.layout));
     const [ID, setID] = useState(0);
-    let index = ID;
+    let index = -1;
     return (
         <div className="grid-container" onKeyDown={(e) => handleKeyDown(e)} tabIndex="0" autoFocus={true}>
         {
