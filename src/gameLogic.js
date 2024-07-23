@@ -25,6 +25,8 @@ export class Game{
         }
         let multiplier = startIndex ===0 ? 1 : -1;
         
+
+        let toPop = {}; // this is essentially going to be a set, checking if the coordinate should be popped or not
         for(let i = 0; i < this._size; i++)
         {
             //first off, make a list of the numbers, not including 0, in the order they appear
@@ -47,8 +49,7 @@ export class Game{
                         line.push(val);
                 }
             }
-
-
+            let popCoords = []; // this will be used to get the coordinates of each square that should pop at the end of the move.
             //after the line has been made, look to make pairs, go through the list, look at one and the one right after it, and see if they're the same. 
             //If so, replace them in the list and look past both of them. If not, just look past the first one.
             let index = 0;
@@ -57,6 +58,7 @@ export class Game{
                 if(line[index] === line[index +1])
                 {
                     line.splice(index, 2, line[index] * 2);
+                    popCoords.push(index);
                 }
                 index++;
             } 
@@ -64,18 +66,39 @@ export class Game{
             //now, make this line into the layout
             if(isAlongCol)
             {
+                let popIndex =0;
                 for (let j = 0; j < this._size; j++) {
                     let newInsertion = j < line.length ? line[j] : null;
                     this.layout[startIndex + (j*multiplier)][i] = newInsertion;
+                    
+                    //so this checks if it has added a square to the layout from the line variable that should be popping when rendering.
+                    //This is done by seeing if the index of the square popping matches with the index it is currently at as it iterates through the line variable.
+                    if(popIndex < popCoords.length && popCoords[popIndex] === j)
+                    {
+                        popCoords[popIndex] = [startIndex + (j*multiplier), i];
+                        popIndex++;
+                    }
                 }
                 
             }
             else
             {
+                let popIndex =0;
                 for (let j = 0; j < this._size; j++) {
                     let newInsertion = j < line.length ? line[j] : null;
                     this.layout[i][startIndex + (j*multiplier)] = newInsertion;
+
+                    //so this checks if it has added a square to the layout from the line variable that should be popping when rendering.
+                    //This is done by seeing if the index of the square popping matches with the index it is currently at as it iterates through the line variable.
+                    if(popIndex < popCoords.length && popCoords[popIndex] === j)
+                        {
+                            popCoords[popIndex] = [i, startIndex + (j*multiplier)];
+                            popIndex++;
+                        }
                 }
+            }
+            for (let j = 0; j < popCoords.length; j++) {
+                toPop[popCoords[j]] = true;
             }
         }
 
@@ -100,12 +123,13 @@ export class Game{
             //weird thing where layout looks into the future if I do console.log of the whole 2D array, and it counts the changes made in the next block when generating a new number.
         }
             */
-        let coords = [-1,-1];
+        
         if(!isSame) // If it isn't the same, then a move hasn't actually happened
         {
-            coords = this.generateNewNum();
+            let coords = this.generateNewNum();
+            toPop[coords] = true;
         }
-        return [this.layout, coords];
+        return [this.layout, toPop];
     }
     _
 

@@ -38,8 +38,8 @@ export default function Grid()
     
 
     const [layoutClass, setLayout] = useState(new LayoutWrapper(game.layout));
-    const [newTile, setNewTile] = useState(initialNewTile);
-    const prevNewTile = useRef([-1,-1, 0]);
+    const [toPop, setToPop] = useState({});
+    const keyOffset = useRef(0); // this is just here to force re-renders on the squares, since it's possible for a square to get the same props twice or more, but need to pop twice or more, so it can't be distuinguished within the component.
     let index = -1;
     let rowNum =-1;
     return (
@@ -52,26 +52,29 @@ export default function Grid()
                 return row.map((square) => 
                 {
                     colNum++;
-
                     let value = square;
                     index++;
+                    
                     if (value > 2048)
                         value = "higher";
-                    let isNew = rowNum === newTile[0] && colNum === newTile[1];
+
+                    let shouldPop = toPop[[rowNum,colNum]];
                     let tempIndex = index;
-                    if(isNew && prevNewTile.current[0] === newTile[0] && prevNewTile.current[1] === newTile[1])
+                    if(shouldPop)
                     {
-                        tempIndex = 9999 + prevNewTile.current[2] // some key messing to force a re-render if the same coords keeps on getting the new tile added to it. 
-                        prevNewTile.current[2] = (prevNewTile.current[2]+1) %3; 
+                        tempIndex = 9999 + keyOffset.current; // some key messing to force a re-render if the same coords keeps on getting the new tile added to it. 
+                        keyOffset.current = (keyOffset.current+1) % (size * size * 2); 
                     }
                         
-                    return ( <Square 
-                        key={tempIndex} 
-                        bgCol={colourMap[value][0]} 
-                        fontCol={colourMap[value][1]} 
-                        value={square} 
-                        isNew={isNew}
-                        />);
+                    return (
+                            <Square 
+                            key={tempIndex} 
+                            bgCol={colourMap[value][0]} 
+                            fontCol={colourMap[value][1]} 
+                            value={square} 
+                            shouldPop={shouldPop}
+                            />
+                    );
                 });  
             })
         }
@@ -93,16 +96,15 @@ export default function Grid()
             case "s": direction = "down"; break;
             default: return null;
         }
-        let [temp, coords] = game.handleMove(direction);
+        let [temp, toPop] = game.handleMove(direction);
         // let newVersion = [];
         // for (let i = 0; i < temp.length; i++) {
         //     newVersion.push([...temp[i]]);
         // }
-        if(coords[0] !== -1) //so if the board has changed.
+        if(Object.keys(toPop).length !== 0) //so if the board has actually changed.
         {
             setLayout(new LayoutWrapper(temp));
-            prevNewTile.current = [...newTile, prevNewTile.current[2]];
-            setNewTile(coords);
+            setToPop(toPop);
         }
             
         
