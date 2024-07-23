@@ -100,11 +100,12 @@ export class Game{
             //weird thing where layout looks into the future if I do console.log of the whole 2D array, and it counts the changes made in the next block when generating a new number.
         }
             */
+        let coords = [-1,-1];
         if(!isSame) // If it isn't the same, then a move hasn't actually happened
         {
-            this.generateNewNum();
+            coords = this.generateNewNum();
         }
-        return [this.layout, isSame];
+        return [this.layout, coords];
     }
     _
 
@@ -126,7 +127,8 @@ export class Game{
             } 
         }
         const random = Math.floor(Math.random() * numFree);
-        const [rowIndex, colIndex] = freeSpaces[random];
-        this.layout.splice(rowIndex, 1, this.layout[rowIndex].toSpliced(colIndex, 1, 2) );
+        const [row, col] = freeSpaces[random];
+        this.layout.splice(row, 1, this.layout[row].toSpliced(col, 1, 2) );
+        return [row, col];
     }
 }

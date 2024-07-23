@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Square from "./Square"
 import {Game} from "./gameLogic.js"
 
@@ -30,7 +30,7 @@ for(let i=0; i< size; i++)
 }
 
 const game = new Game(initialLayout);
-game.generateNewNum();
+const initialNewTile = game.generateNewNum();
 
 
 export default function Grid()
@@ -38,20 +38,42 @@ export default function Grid()
     
 
     const [layoutClass, setLayout] = useState(new LayoutWrapper(game.layout));
-    const [ID, setID] = useState(0);
+    const [newTile, setNewTile] = useState(initialNewTile);
+    const prevNewTile = useRef([-1,-1, 0]);
     let index = -1;
+    let rowNum =-1;
     return (
         <div className="grid-container" onKeyDown={(e) => handleKeyDown(e)} tabIndex="0" autoFocus={true}>
         {
-            layoutClass.layout.map(row => row.map(square => 
+            layoutClass.layout.map((row) => 
             {
-                let value = square;
-                index++;
-                if (value > 2048)
-                    value = "higher";
-                return ( <Square key={index} bgCol={colourMap[value][0]} fontCol={colourMap[value][1]} value={value} />);
-            }  
-            ))
+                rowNum++;
+                let colNum =-1;
+                return row.map((square) => 
+                {
+                    colNum++;
+
+                    let value = square;
+                    index++;
+                    if (value > 2048)
+                        value = "higher";
+                    let isNew = rowNum === newTile[0] && colNum === newTile[1];
+                    let tempIndex = index;
+                    if(isNew && prevNewTile.current[0] === newTile[0] && prevNewTile.current[1] === newTile[1])
+                    {
+                        tempIndex = 9999 + prevNewTile.current[2] // some key messing to force a re-render if the same coords keeps on getting the new tile added to it. 
+                        prevNewTile.current[2] = (prevNewTile.current[2]+1) %3; 
+                    }
+                        
+                    return ( <Square 
+                        key={tempIndex} 
+                        bgCol={colourMap[value][0]} 
+                        fontCol={colourMap[value][1]} 
+                        value={square} 
+                        isNew={isNew}
+                        />);
+                });  
+            })
         }
         </div>
     ); 
@@ -71,18 +93,16 @@ export default function Grid()
             case "s": direction = "down"; break;
             default: return null;
         }
-        let [temp, isSame] = game.handleMove(direction);
+        let [temp, coords] = game.handleMove(direction);
         // let newVersion = [];
         // for (let i = 0; i < temp.length; i++) {
         //     newVersion.push([...temp[i]]);
         // }
-        if(!isSame)
+        if(coords[0] !== -1) //so if the board has changed.
         {
             setLayout(new LayoutWrapper(temp));
-            if(ID >= (size*size*2))
-                setID(0);
-            else
-                setID(ID + (size*size));
+            prevNewTile.current = [...newTile, prevNewTile.current[2]];
+            setNewTile(coords);
         }
             
         
