@@ -55,10 +55,17 @@
   width: 15vh;
   margin: 0.6vh;
   border-radius: 10%;
-  transition-property: left, top, transform;
-  transition-timing-function: ease-out;
-  transition: left 1s, top 1s, transform 1s; 
+  background-color: #888888;
+  z-index: 99;
 }
+.square{
+  transition-property: transform;
+  transition-timing-function: ease-out;
+  transition: transform 0.3s; 
+  border-radius: 10%;
+}
+
+
 .quick-pop{
   transition-property: transform;
   transition: transform 0.2s;

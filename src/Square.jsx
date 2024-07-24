@@ -8,7 +8,6 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
     useEffect(() =>
     {
       if (shouldPop) {
-        console.log("should pop");
         setScale(1.1);
         setTimeout(
             () => {setScale(1);}, 
@@ -26,15 +25,24 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
     }, []);
       
     const move = `translate(${xMove * dimensions.width}px, ${yMove * dimensions.height}px)`;
-    console.log(dimensions);
-  
+    
     const style = {transform: move, backgroundColor : bgCol, color: fontCol};
+    if(xMove !== 0 || yMove !== 0)
+      style.zIndex = -1;
+    else
+    {
+      style.zIndex = 99;
+      style.transition = "transform 0s";
+    }
+      
+
     //making the key the value means that textFit re-renders, and is assured to be the correct size whenever the value changes.
     return (
-      <div className="quick-pop" style={{transform: `scale(${scale})`}}>
-        <div ref={domRef} className="grid-item" style={style}>
-            <Textfit className="square" key ={value} mode ="single" forceSingleModeWidth={false} min={0.3}>{value}</Textfit>
-        </div>
+      <div ref={domRef} className="quick-pop grid-item" style={{transform: `scale(${scale})`}}>
+        {value !== null && 
+        <div  className="square" style={style}>
+            <Textfit  key ={value} mode ="single" forceSingleModeWidth={false} min={0.3}>{value}</Textfit>
+        </div>}
       </div>
     )
 }

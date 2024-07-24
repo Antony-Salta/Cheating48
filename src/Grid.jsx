@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Square from "./Square"
 import {Game} from "./gameLogic.js"
+import { copy2DArray } from "./util.js";
 
 /**
  * 
@@ -29,31 +30,37 @@ for(let i=0; i< size; i++)
     initialLayout.push(new Array(size).fill(null));
 }
 
+const moveTime = 300; //time for a move animation in milliseconds, needs to be synced up with what the transition time is in the css file.
+
 const game = new Game(initialLayout);
-const initialNewTile = game.generateNewNum();
+game.generateNewNum();
 
 
 export default function Grid()
 {
-    
+    let copy = copy2DArray(game.layout);
 
-    const [layout, setLayout] = useState(new LayoutWrapper(game.layout));
+    const [layout, setLayout] = useState(new LayoutWrapper(copy));
     const [prevLayout, setPrevLayout] = useState(null);
-    const [gameUpdates, setGameUpdates] = useState({toPop: {}, newTile: {}});
+    const [gameUpdates, setGameUpdates] = useState({toPop: {}, newTile: {}, moveCoords : {}});
     const keyOffset = useRef(0); // this is just here to force re-renders on the squares, since it's possible for a square to get the same props twice or more, but need to pop twice or more, so it can't be distuinguished within the component.
+    const [timeoutID, setTimeoutID] = useState(null);
     let index = -1;
     let rowNum =-1;
     
-    
+    const isMoving = timeoutID !== null;
+    const layoutToUse = isMoving ?  prevLayout : layout; 
+    if(isMoving)
+        console.log(gameUpdates.moveCoords);
     //now I need to have a conditional thing with a timer that renders the moving animation, then the new board after, that can be interrupted if another move is made.
     return (
         <div className="grid-container" onKeyDown={(e) => handleKeyDown(e)} tabIndex="0" autoFocus={true}>
         {
-            layout.layout.map((row) => 
+            layoutToUse.grid.map(row => 
             {
                 rowNum++;
                 let colNum =-1;
-                return row.map((square) => 
+                return row.map(square => 
                 {
                     colNum++;
                     let value = square;
@@ -61,13 +68,24 @@ export default function Grid()
                     
                     if (value > 2048)
                         value = "higher";
-
-                    let shouldPop = gameUpdates.toPop[[rowNum,colNum]] || gameUpdates.newTile[[rowNum,colNum]];
+                    
+                    let shouldPop = (gameUpdates.toPop[[rowNum,colNum]] || gameUpdates.newTile[[rowNum,colNum]]) && !isMoving;
                     let tempIndex = index;
                     if(shouldPop)
                     {
                         tempIndex = 9999 + keyOffset.current; // some key messing to force a re-render if the same coords keeps on getting the new tile added to it. 
-                        keyOffset.current = (keyOffset.current+1) % (size * size * 2); 
+                        keyOffset.current = (keyOffset.current+1) % (size * size * 100); 
+                    }
+                    let x=0;
+                    let y = 0;
+                    let direction = gameUpdates.moveCoords.direction;
+                    let move = gameUpdates.moveCoords[[rowNum,colNum]];
+                    if((move ?? false) && isMoving) // so if it's actually defined
+                    {
+                        if(gameUpdates.moveCoords.isAlongCol)
+                            y = move * direction;
+                        else
+                            x = move * direction;
                     }
                         
                     return (
@@ -77,6 +95,8 @@ export default function Grid()
                             fontCol={colourMap[value][1]} 
                             value={square} 
                             shouldPop={shouldPop}
+                            xMove={x}
+                            yMove={y}
                             />
                     );
                 });  
@@ -100,15 +120,25 @@ export default function Grid()
             case "s": direction = "down"; break;
             default: return null;
         }
-        let [temp, gameUpdates] = game.handleMove(direction);
-        // let newVersion = [];
-        // for (let i = 0; i < temp.length; i++) {
-        //     newVersion.push([...temp[i]]);
-        // }
+        let [temp,  gameUpdates] = game.handleMove(direction);
+        
         if(Object.keys(gameUpdates.newTile) !== false) //so if the board has actually changed.
         {
-            setLayout(new LayoutWrapper(temp));
+            let copy = copy2DArray(layout.grid);
+            setPrevLayout(new LayoutWrapper(copy));
+            copy = copy2DArray(temp);
+            setLayout(new LayoutWrapper(copy)); 
+
             setGameUpdates(gameUpdates);
+            
+            // what this should do is clear the timeout if a valid key is pressed before the move animation is finished, and essentially just move on faster.
+            if(timeoutID !== null)
+            {
+                clearTimeout(timeoutID);
+            }
+            setTimeoutID(setTimeout( () => {
+                setTimeoutID(null); // this will trigger a re-render where everything should have finished moving, and then showing the new state of the board.
+            }, moveTime));
         }
             
         
@@ -116,9 +146,11 @@ export default function Grid()
     }
 }
 
+
+
 class LayoutWrapper{
-    constructor(layout)
+    constructor(grid)
     {
-        this.layout = layout;
+        this.grid = grid;
     }
 }

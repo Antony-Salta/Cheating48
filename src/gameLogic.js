@@ -1,16 +1,16 @@
+import { copy2DArray } from "./util";
 export class Game{
     constructor(layout)
     {
-        this.layout = layout;
+        //to make it a separate thing according to memory
+        let temp = copy2DArray(layout);
+        this.layout = temp;
         this._size = layout.length;
     }
 
     handleMove(direction)
     {
-        let prevLayout = []
-        for (let i = 0; i < this._size; i++) {
-            prevLayout.push([...this.layout[i]]);   
-        }
+        let prevLayout = copy2DArray(this.layout);
         //console.log(this.layout); // for some reason this console log looks into the future and prints out the value of the layout at the end of this function.
 
         let startIndex = this._size -1; // this gives the starting point to start looking at
@@ -28,7 +28,7 @@ export class Game{
 
         let toPop = {}; // this is essentially going to be a set, checking if the coordinate should be popped or not
         let moveCoords = isAlongCol ? {isAlongCol : true} : {isAlongCol : false};
-        moveCoords.multiplier = multiplier;
+        moveCoords.direction = -multiplier; //the multiplier is opposite for moving compared to what order the list is made in.
         for(let i = 0; i < this._size; i++)
         {
             //first off, make a list of the numbers, not including 0, in the order they appear
@@ -82,10 +82,10 @@ export class Game{
             {
                 let popIndex =0;
                 for (let j = 0; j < this._size; j++) 
-                    {
+                {
                     //moveCoords will get all of the old coordinates of the squares that need to move, and by how much
-                    if(this.layout[[startIndex + (j*multiplier)][i]] !== 0)
-                        moveCoords[[startIndex + (j*multiplier)][i]] = movesNeeded[j];
+                    if(this.layout[[startIndex + (j*multiplier)][i]] !== 0 && movesNeeded[j] !== 0)
+                        moveCoords[[startIndex + (j*multiplier), i]] = movesNeeded[j];
                     
                     let newInsertion = j < line.length ? line[j] : null;
                     this.layout[startIndex + (j*multiplier)][i] = newInsertion;
@@ -106,10 +106,8 @@ export class Game{
                 for (let j = 0; j < this._size; j++) 
                 {
                     //moveCoords will get all of the old coordinates of the squares that need to move, and by how much
-                    if(this.layout[[startIndex + (j*multiplier)][i]] !== 0)
-                    {
-                        moveCoords[[startIndex + (j*multiplier)][i]] = movesNeeded[j];
-                    }
+                    if(this.layout[[i][startIndex + (j*multiplier)]] !== 0 && movesNeeded[j] !== 0)
+                        moveCoords[[i, startIndex + (j*multiplier)]] = movesNeeded[j];
 
                     let newInsertion = j < line.length ? line[j] : null;
                     this.layout[i][startIndex + (j*multiplier)] = newInsertion;
@@ -163,7 +161,7 @@ export class Game{
      */
     generateNewNum()
     {
-        let freeSpaces = { 5 : "bingo"};
+        let freeSpaces = {};
         let numFree = 0;
         for (let i = 0; i < this._size; i++) {
             for (let j = 0; j < this._size; j++) {
