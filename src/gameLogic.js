@@ -27,18 +27,24 @@ export class Game{
         
 
         let toPop = {}; // this is essentially going to be a set, checking if the coordinate should be popped or not
+        let moveCoords = isAlongCol ? {isAlongCol : true} : {isAlongCol : false};
+        moveCoords.multiplier = multiplier;
         for(let i = 0; i < this._size; i++)
         {
             //first off, make a list of the numbers, not including 0, in the order they appear
             //with the first being closest to the edge it is pushed towards. 
             //So if the player goes right and there is a row of 2, 8, 0, 16, the list will be 16, 8, 2
             let line = [];
+            let movesNeeded = Array(this._size).fill(0); // this will say how far each item in the line has to move. It will also say that 0 spaces need to move, so that needs to be cut out somewhere here
             if(isAlongCol)
             {
                 for (let j = 0; j < this._size; j++) {
                     let val = this.layout[startIndex + (j*multiplier)][i];
                     if(val !== null)
+                    {
                         line.push(val);
+                        movesNeeded[j] = j - (line.length -1);
+                    }  
                 }
             }
             else
@@ -46,9 +52,13 @@ export class Game{
                 for (let j = 0; j < this._size; j++) {
                     let val = this.layout[i][startIndex + (j*multiplier)];
                     if(val !== null)
+                    {
                         line.push(val);
+                        movesNeeded[j] = j - (line.length -1);
+                    }
                 }
-            }
+            } 
+
             let popCoords = []; // this will be used to get the coordinates of each square that should pop at the end of the move.
             //after the line has been made, look to make pairs, go through the list, look at one and the one right after it, and see if they're the same. 
             //If so, replace them in the list and look past both of them. If not, just look past the first one.
@@ -59,6 +69,10 @@ export class Game{
                 {
                     line.splice(index, 2, line[index] * 2);
                     popCoords.push(index);
+                    
+                    for (let j = index+1; j < this._size; j++) { // So when a merge happens, everything needs to move along an extra space after the merged square.
+                        movesNeeded[j] +=1;
+                    }
                 }
                 index++;
             } 
@@ -67,7 +81,12 @@ export class Game{
             if(isAlongCol)
             {
                 let popIndex =0;
-                for (let j = 0; j < this._size; j++) {
+                for (let j = 0; j < this._size; j++) 
+                    {
+                    //moveCoords will get all of the old coordinates of the squares that need to move, and by how much
+                    if(this.layout[[startIndex + (j*multiplier)][i]] !== 0)
+                        moveCoords[[startIndex + (j*multiplier)][i]] = movesNeeded[j];
+                    
                     let newInsertion = j < line.length ? line[j] : null;
                     this.layout[startIndex + (j*multiplier)][i] = newInsertion;
                     
@@ -84,7 +103,14 @@ export class Game{
             else
             {
                 let popIndex =0;
-                for (let j = 0; j < this._size; j++) {
+                for (let j = 0; j < this._size; j++) 
+                {
+                    //moveCoords will get all of the old coordinates of the squares that need to move, and by how much
+                    if(this.layout[[startIndex + (j*multiplier)][i]] !== 0)
+                    {
+                        moveCoords[[startIndex + (j*multiplier)][i]] = movesNeeded[j];
+                    }
+
                     let newInsertion = j < line.length ? line[j] : null;
                     this.layout[i][startIndex + (j*multiplier)] = newInsertion;
 
@@ -123,13 +149,12 @@ export class Game{
             //weird thing where layout looks into the future if I do console.log of the whole 2D array, and it counts the changes made in the next block when generating a new number.
         }
             */
-        
+        let newTile = false;
         if(!isSame) // If it isn't the same, then a move hasn't actually happened
         {
-            let coords = this.generateNewNum();
-            toPop[coords] = true;
+            newTile = this.generateNewNum();
         }
-        return [this.layout, toPop];
+        return [this.layout, {toPop: toPop, newTile: newTile, moveCoords: moveCoords}];
     }
     _
 
@@ -153,6 +178,9 @@ export class Game{
         const random = Math.floor(Math.random() * numFree);
         const [row, col] = freeSpaces[random];
         this.layout.splice(row, 1, this.layout[row].toSpliced(col, 1, 2) );
-        return [row, col];
+        
+        let mapping = {};
+        mapping[[row, col]] = true;
+        return mapping;
     }
 }

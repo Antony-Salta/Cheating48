@@ -37,15 +37,19 @@ export default function Grid()
 {
     
 
-    const [layoutClass, setLayout] = useState(new LayoutWrapper(game.layout));
-    const [toPop, setToPop] = useState({});
+    const [layout, setLayout] = useState(new LayoutWrapper(game.layout));
+    const [prevLayout, setPrevLayout] = useState(null);
+    const [gameUpdates, setGameUpdates] = useState({toPop: {}, newTile: {}});
     const keyOffset = useRef(0); // this is just here to force re-renders on the squares, since it's possible for a square to get the same props twice or more, but need to pop twice or more, so it can't be distuinguished within the component.
     let index = -1;
     let rowNum =-1;
+    
+    
+    //now I need to have a conditional thing with a timer that renders the moving animation, then the new board after, that can be interrupted if another move is made.
     return (
         <div className="grid-container" onKeyDown={(e) => handleKeyDown(e)} tabIndex="0" autoFocus={true}>
         {
-            layoutClass.layout.map((row) => 
+            layout.layout.map((row) => 
             {
                 rowNum++;
                 let colNum =-1;
@@ -58,7 +62,7 @@ export default function Grid()
                     if (value > 2048)
                         value = "higher";
 
-                    let shouldPop = toPop[[rowNum,colNum]];
+                    let shouldPop = gameUpdates.toPop[[rowNum,colNum]] || gameUpdates.newTile[[rowNum,colNum]];
                     let tempIndex = index;
                     if(shouldPop)
                     {
@@ -73,7 +77,6 @@ export default function Grid()
                             fontCol={colourMap[value][1]} 
                             value={square} 
                             shouldPop={shouldPop}
-                            xMove={shouldPop ? 1: 0 }
                             />
                     );
                 });  
@@ -97,15 +100,15 @@ export default function Grid()
             case "s": direction = "down"; break;
             default: return null;
         }
-        let [temp, toPop] = game.handleMove(direction);
+        let [temp, gameUpdates] = game.handleMove(direction);
         // let newVersion = [];
         // for (let i = 0; i < temp.length; i++) {
         //     newVersion.push([...temp[i]]);
         // }
-        if(Object.keys(toPop).length !== 0) //so if the board has actually changed.
+        if(Object.keys(gameUpdates.newTile) !== false) //so if the board has actually changed.
         {
             setLayout(new LayoutWrapper(temp));
-            setToPop(toPop);
+            setGameUpdates(gameUpdates);
         }
             
         
