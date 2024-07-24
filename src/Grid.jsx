@@ -73,6 +73,7 @@ export default function Grid()
                             fontCol={colourMap[value][1]} 
                             value={square} 
                             shouldPop={shouldPop}
+                            xMove={shouldPop ? 1: 0 }
                             />
                     );
                 });  

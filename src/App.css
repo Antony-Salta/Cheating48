@@ -55,4 +55,12 @@
   width: 15vh;
   margin: 0.6vh;
   border-radius: 10%;
+  transition-property: left, top, transform;
+  transition-timing-function: ease-out;
+  transition: left 1s, top 1s, transform 1s; 
+}
+.quick-pop{
+  transition-property: transform;
+  transition: transform 0.2s;
+  transition-timing-function: ease-out;
 }
