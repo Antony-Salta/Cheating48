@@ -50,8 +50,10 @@ export default function Grid()
     
     const isMoving = timeoutID !== null;
     const layoutToUse = isMoving ?  prevLayout : layout; 
-    if(isMoving)
-        console.log(gameUpdates.moveCoords);
+    // if(isMoving)
+    //     console.log(gameUpdates.moveCoords);
+    if (isMoving)
+        console.log(gameUpdates.toPop);
     //now I need to have a conditional thing with a timer that renders the moving animation, then the new board after, that can be interrupted if another move is made.
     return (
         <div className="grid-container" onKeyDown={(e) => handleKeyDown(e)} tabIndex="0" autoFocus={true}>
@@ -134,11 +136,12 @@ export default function Grid()
             // what this should do is clear the timeout if a valid key is pressed before the move animation is finished, and essentially just move on faster.
             if(timeoutID !== null)
             {
-                clearTimeout(timeoutID);
+                clearTimeout(timeoutID); //somewhat issue here where if someone moves quickly, they get pieces moving horizontally to go where they're supposed to.
             }
             setTimeoutID(setTimeout( () => {
                 setTimeoutID(null); // this will trigger a re-render where everything should have finished moving, and then showing the new state of the board.
             }, moveTime));
+
         }
             
         

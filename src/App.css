@@ -56,13 +56,14 @@
   margin: 0.6vh;
   border-radius: 10%;
   background-color: #888888;
-  z-index: 99;
+  z-index: auto;
 }
 .square{
   transition-property: transform;
   transition-timing-function: ease-out;
   transition: transform 0.3s; 
   border-radius: 10%;
+  z-index: 99;
 }
 
 

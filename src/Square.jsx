@@ -27,13 +27,10 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
     const move = `translate(${xMove * dimensions.width}px, ${yMove * dimensions.height}px)`;
     
     const style = {transform: move, backgroundColor : bgCol, color: fontCol};
-    if(xMove !== 0 || yMove !== 0)
-      style.zIndex = -1;
-    else
-    {
-      style.zIndex = 99;
+    
+    if(xMove === 0 && yMove === 0)
       style.transition = "transform 0s";
-    }
+      
       
 
     //making the key the value means that textFit re-renders, and is assured to be the correct size whenever the value changes.
