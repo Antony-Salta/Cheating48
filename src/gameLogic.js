@@ -130,6 +130,7 @@ export class Game{
         {
             newTile = this.generateNewNum();
         }
+        console.log(isSame);
         return [this.layout, {toPop: toPop, newTile: newTile, moveCoords: moveCoords}];
     }
     _

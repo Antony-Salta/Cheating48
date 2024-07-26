@@ -1,6 +1,6 @@
 import { Textfit } from "react-textfit";
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
-export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMove =0})
+export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMove =0,})
 {
     const [scale, setScale] = useState(1);
     const domRef = useRef(null);
@@ -25,8 +25,16 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
     }, []);
       
     const move = `translate(${xMove * dimensions.width}px, ${yMove * dimensions.height}px)`;
-    
-    const style = {transform: move, backgroundColor : bgCol, color: fontCol};
+    let fontSize = '0';
+    if(value !== null)
+    {
+      let length = value.toString().length;
+      if(length === 1) // this is just an edge case since single digit ones just seem to take up more space
+        fontSize = dimensions.width + "px";
+      else
+        fontSize = (dimensions.width * 1.5/length) + "px";
+    }
+    const style = {transform: move, backgroundColor : bgCol, color: fontCol, fontSize : fontSize};
     
     if(xMove === 0 && yMove === 0)
       style.transition = "transform 0s";
@@ -38,8 +46,9 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
       <div ref={domRef} className="quick-pop grid-item" style={{transform: `scale(${scale})`}}>
         {value !== null && 
         <div  className="square" style={style}>
-            <Textfit  key ={value} mode ="single" forceSingleModeWidth={false} min={0.3}>{value}</Textfit>
+            {value}
         </div>}
       </div>
     )
 }
+//<Textfit  key ={value} mode ="single" forceSingleModeWidth={false} min={0.3}>{value}</Textfit>
