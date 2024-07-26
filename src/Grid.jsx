@@ -30,7 +30,7 @@ for(let i=0; i< size; i++)
     initialLayout.push(new Array(size).fill(null));
 }
 
-const moveTime = 300; //time for a move animation in milliseconds, needs to be synced up with what the transition time is in the css file.
+const moveTime = 120; //time for a move animation in milliseconds, needs to be synced up with what the transition time is in the css file.
 
 const game = new Game(initialLayout);
 game.generateNewNum();
@@ -81,16 +81,23 @@ export default function Grid()
                     // }
                     let x=0;
                     let y = 0;
+                    let zPriority = 0; // this is a little thing to make squares on the opposite side of where the squares move to get a higher z-index, so that they appear in front instead of slipping behind.
                     let direction = gameUpdates.moveCoords.direction;
                     let move = gameUpdates.moveCoords[[rowNum,colNum]];
                     if((move ?? false) && isMoving) // so if it's actually defined
                     {
                         if(gameUpdates.moveCoords.isAlongCol)
+                        {
                             y = move * direction;
+                            zPriority = (size - rowNum) * direction;
+                        }
                         else
+                        {
                             x = move * direction;
+                            zPriority = (size - colNum) * direction;
+                        }
                     }
-                        
+                    
                     return (
                             <Square 
                             key={key} 
@@ -100,6 +107,7 @@ export default function Grid()
                             shouldPop={shouldPop}
                             xMove={x}
                             yMove={y}
+                            zPriority={zPriority}
                             />
                     );
                 });  

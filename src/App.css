@@ -60,8 +60,7 @@
 }
 .square{
   transition-property: transform;
-  transition-timing-function: ease-out;
-  transition: transform 0.3s; 
+  transition: transform 0.2s; 
   border-radius: 10%;
   z-index: 99;
 }

@@ -1,6 +1,6 @@
 import { Textfit } from "react-textfit";
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
-export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMove =0,})
+export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMove =0, zPriority = 0})
 {
     const [scale, setScale] = useState(1);
     const domRef = useRef(null);
@@ -34,18 +34,24 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
       else
         fontSize = (dimensions.width * 1.5/length) + "px";
     }
-    const style = {transform: move, backgroundColor : bgCol, color: fontCol, fontSize : fontSize};
-    
+    let zIndex = "auto";
+    if(value !== null)
+      zIndex = 99 + zPriority; //zPriority will just be set in Grid to make squares that are closer to the opposite side of the move go on top, because of weird things here with how both divs seem to move
+
+    let squareStyle = {transform: move, backgroundColor : bgCol, color: fontCol, fontSize : fontSize, zIndex: zIndex};
     if(xMove === 0 && yMove === 0)
-      style.transition = "transform 0s";
-      
-      
+      squareStyle.transition = "transform 0s";
+    
+    let gridStyle = {transform: `scale(${scale})`};
+    if(value !== null)
+      gridStyle.zIndex = zIndex;
+    
 
     //making the key the value means that textFit re-renders, and is assured to be the correct size whenever the value changes.
     return (
-      <div ref={domRef} className="quick-pop grid-item" style={{transform: `scale(${scale})`}}>
+      <div ref={domRef} className="quick-pop grid-item" style={gridStyle}>
         {value !== null && 
-        <div  className="square" style={style}>
+        <div  className="square" style={squareStyle}>
             {value}
         </div>}
       </div>
