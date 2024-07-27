@@ -32,6 +32,8 @@ export class Game{
         let moveCoords ={};
         moveCoords.isAlongCol = this.isAlongCol;
         moveCoords.direction = -this.multiplier; //the multiplier is opposite for moving compared to what order the list is made in.
+
+        let increase = 0; // this is how much the score should increase by
         for(let i = 0; i < this._size; i++)
         {
             //first off, make a list of the numbers, not including 0, in the order they appear
@@ -61,7 +63,8 @@ export class Game{
                 {
                     line.splice(index, 2, line[index] * 2);
                     popCoords.push(index);
-                    
+                    increase += line[index];
+
                     let hasSkippedFirst = false // this is a weird thing where the first item getting the extra space shouldn't move extra, but you can't know where that square is in the movesNeeded array.
                     for (let j = index; j < this._size; j++) 
                     { // So when a merge happens, everything needs to move along an extra space after the merged square.
@@ -130,8 +133,7 @@ export class Game{
         {
             newTile = this.generateNewNum();
         }
-        console.log(isSame);
-        return [this.layout, {toPop: toPop, newTile: newTile, moveCoords: moveCoords}];
+        return [this.layout, {toPop: toPop, newTile: newTile, moveCoords: moveCoords}, increase];
     }
     _
 
