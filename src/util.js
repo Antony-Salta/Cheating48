@@ -6,3 +6,8 @@ export function copy2DArray(array)
     }
     return temp;
 }
+export function transpose(array)
+{
+    let copy = copy2DArray(array);
+    return copy.map((row, rowNum, array2D) => row.map((val, colNum) => array2D[colNum][rowNum]));
+}

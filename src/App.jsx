@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import { Game } from './gameLogic'
-import { copy2DArray } from './util'
+import { copy2DArray} from './util'
 import Score from './Score'
 import Grid from './Grid'
 
@@ -79,7 +79,7 @@ function App() {
   }
 
   return (
-    <div onKeyDown={(e) => handleKeyDown(e)}style={{display: "inline"}}>
+    <div onKeyDown={(e) => handleKeyDown(e)}  className={"whole"} tabIndex="0" autoFocus={true}>
       <Score score={score} increase={increase}/>
       <Grid layout={layout} prevLayout={prevLayout} gameUpdates={gameUpdates} ID={ID} timeoutID={timeoutID} size={size}/>
       

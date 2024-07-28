@@ -28,11 +28,6 @@ const colourMap = {
 export default function Grid({layout, prevLayout, gameUpdates, ID, timeoutID, size =4})
 {
     
-
-    
-    let index = -1;
-    let rowNum =-1;
-    
     const isMoving = timeoutID !== null;
     const layoutToUse = isMoving ?  prevLayout : layout; 
     // if(isMoving)
@@ -41,17 +36,14 @@ export default function Grid({layout, prevLayout, gameUpdates, ID, timeoutID, si
     //     console.log(gameUpdates.toPop);
     //now I need to have a conditional thing with a timer that renders the moving animation, then the new board after, that can be interrupted if another move is made.
     return (
-        <div className="grid-container"  tabIndex="0" autoFocus={true}>
+        <div className="grid-container">
         {
-            layoutToUse.grid.map(row => 
+            layoutToUse.grid.map((row, rowNum) => 
             {
-                rowNum++;
-                let colNum =-1;
-                return row.map(square => 
+                return row.map((square, colNum) => 
                 {
-                    colNum++;
                     let value = square;
-                    index++;
+                    let index = (rowNum * size) + colNum;
                     
                     if (value > 2048)
                         value = "higher";

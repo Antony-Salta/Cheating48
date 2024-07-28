@@ -1,4 +1,3 @@
-import { Textfit } from "react-textfit";
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMove =0, zPriority = 0})
 {
@@ -25,6 +24,7 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
     }, []);
       
     const move = `translate(${xMove * dimensions.width}px, ${yMove * dimensions.height}px)`;
+    
     let fontSize = '0';
     if(value !== null)
     {
@@ -34,10 +34,13 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
       else
         fontSize = (dimensions.width * 1.5/length) + "px";
     }
+    
+    
     let zIndex = "auto";
     if(value !== null)
       zIndex = 99 + zPriority; //zPriority will just be set in Grid to make squares that are closer to the opposite side of the move go on top, because of weird things here with how both divs seem to move
 
+    
     let squareStyle = {transform: move, backgroundColor : bgCol, color: fontCol, fontSize : fontSize, zIndex: zIndex};
     if(xMove === 0 && yMove === 0)
       squareStyle.transition = "transform 0s";

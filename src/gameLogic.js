@@ -1,4 +1,5 @@
-import { copy2DArray } from "./util";
+import { copySelection } from "@testing-library/user-event/dist/cjs/document/copySelection.js";
+import { copy2DArray, transpose } from "./util";
 export class Game{
     constructor(layout)
     {
@@ -142,26 +143,152 @@ export class Game{
      */
     generateNewNum()
     {
-        let freeSpaces = {};
-        let numFree = 0;
+        let GenNumber = Math.random() < 0.9 ? 2 : 4;
+        
+        let biggestNum = 0; // tracks the biggest number
+        let biggestCoords = []; //tracks where the biggest number is
         for (let i = 0; i < this._size; i++) {
             for (let j = 0; j < this._size; j++) {
-                if(this.layout[i][j] === null)
+                if(this.layout[i][j] > biggestNum)
                 {
-                    freeSpaces[numFree] = [i,j];
+                    biggestCoords = [i,j];
+                    biggestNum = this.layout[i][j];
+                }
+            }
+            
+        }
+        let orientation = ""; // now the cheating on the generation begins.
+        /*
+        The best way to play 2048 is to set the numbers up in a snaking pattern, with the biggest number in a corner, and then go from there to other side.
+        then wrap back around the other way.
+        so orientation will identify which way the user is snaking, to give the best generation for that. The system is to give the corner, and then where they're going from there.
+        e.g. putting the biggest number in the top right corner and then having the next biggest to the left is NEW, because it is in the North-East corner, going West. 
+        Top right snaking down would be NES, and so on. 
+        
+        When describing where to put things, I will describe it as if I'm snaking in a NEW direction, 
+        so something like putting squares "under" the biggest number means perpendicular to the direction that the first row/column is filled.
+        */
+        //so this will get the corner that they're favouring
+        if(biggestCoords[0] < this._size /2)
+            orientation += "N";
+        else
+            orientation += "S";
+
+        if(biggestCoords[1] < this._size /2)
+            orientation += "W";
+        else
+            orientation += "E";
+
+        switch(orientation)
+        {
+            case "NE": orientation += this.layout[0][this._size-2] > this.layout[1][this._size-1] ? "W" : "S"; break;
+            case "SE": orientation += this.layout[this._size-1][this._size-2] > this.layout[this._size-1][this._size-2] ? "W" : "N"; break;
+            case "SW": orientation += this.layout[this._size-2][0] > this.layout[this._size-1][1] ? "N" : "E"; break;
+            case "NW": orientation += this.layout[1][0] > this.layout[0][1] ? "S" : "E"; break;
+        }
+        //similar deal here, where if the difference isn't significant the two possible snake locations, then what I identify it as doesn't matter.
+        //There is a possible issue of the biggest number being in some quadrant, but not actually in the corner, and small number being stuck in there.
+        //The goal is to stop that from happening too much, and also skewing generation to allow the player to get out of that (like building a tower under the bigger number so you can move down and push the small number out the way.) 
+
+        /*TODO:
+        - stop big rectangles from being made that can't be merged into itself, because this forces you out of the corner. (It's possible to make it such that the player never has to deal with this, because of how moves and generation works)
+        - fill up the row/column that snaking is happening on first/ generate squares that aren't pressed up on the "right", so that you can't make too many moves "right" and be forced to move the main row "left". 
+        e.g. snaking NEW and having all squares to the right, but not a full row on the top.
+        - if the biggest number isn't in the exact corner, put squares "under" that number so that the player can keep pushing "up", and then "down", keeping the biggest number in place but moving any smaller number actually in the square.
+        - change the number generation to be 2 or 4 for sure to allow a move if a game over is close (this would be hard to beyond just looking 1 move ahead).
+        */
+
+        //First things first, it's going to be painful to do all of the different indexing possibilities for each of these, so I'm going to make a local layout copy that converts them all into the NEW direction, and then flip back after.
+        let convert = this.convertLayout(orientation);
+        
+        let freeSpaces = [];
+        let numFree = 0;
+        
+        for (let i = 0; i < this._size; i++) {
+            for (let j = 0; j < this._size; j++) {
+                let num = convert[i][j];
+                if(num === null)
+                {
+                    freeSpaces.push([i,j]);
                     numFree++;
                 }
-                    
             } 
         }
+
+
+        //this will stop a big block of a row or 2 being filled
+        //a space will be considered as one if the value is null or it can merge right or down. It doesn't look in all directions, because then it would get double counted by the square that can merge with it
+        //I need to find if you can find a row or more that only has one space in it (and this space has to be an actual gap with no square in it), and no squares beneath it. in this case, I can't allow a square to be put in that spot
+        let numSpaces = 0;
+        let holes = [];
+        for (let i = 0; i < this._size; i++) 
+        {
+            if(numSpaces === 0)
+            {
+                for (let j = 0; j < this._size; j++) 
+                {
+                    let rightSquare = j < this._size -2 ? convert[i][j+1] : -1; // TODO: have code in to see how many rows down we are, and therefore whether to snake left or right, and use that to determine genNumber based on the value of squares around this.
+                    let downSquare = i < this._size -2 ? convert[i+1][j] : -1;
+                    if(convert[i][j] === null) // there's an issue here of disallowing the spawn of squares if they would be able to merge in the spot they are placed in.
+                    {
+                        numSpaces++;
+                        if(rightSquare !== GenNumber && downSquare !== GenNumber)
+                            holes.push([i,j]); // only count it as a hole if it would clog things up if a 2 or 4 is added.
+                    }
+                    else if(convert[i][j] === rightSquare) 
+                        numSpaces++;
+                    else if(convert[i][j] === downSquare)
+                        numSpaces++;
+                }
+            }
+            else if(numSpaces === 1 && holes.length === 1) // this is the only case where I have to block a spawn in these conditions
+            {
+                let hole = holes[0];
+                let row = i;
+                let foundSquare = false;
+                while( row < this._size && !foundSquare)
+                {
+                    let col = 0;
+                    while(col < this._size && !foundSquare)
+                    {
+                        if(convert[row][col] !== null)
+                        {
+                            foundSquare = true;
+                            let index = 0;
+                            let isFound = false;
+                            while (index < freeSpaces.length && !isFound)
+                            {
+                                isFound = hole.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
+                                index++;
+                            }
+                            if(isFound)
+                                index--;
+                            freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                            //This seems to work now, I can't really print debug it though, since all the variables give their end value here.
+                            numFree--;
+                        }
+                        col++;
+                    }
+                    row++;
+                }
+                break;
+            }
+            else
+                break;
+        }
+
         const random = Math.floor(Math.random() * numFree);
-        const [row, col] = freeSpaces[random];
-        this.layout.splice(row, 1, this.layout[row].toSpliced(col, 1, 2) );
-        
-        let mapping = {};
-        mapping[[row, col]] = true;
-        return mapping;
+        let [row, col] = freeSpaces[random];
+        console.log(orientation);
+        convert.splice(row, 1, convert[row].toSpliced(col, 1, GenNumber) );
+        this.layout = this.convertBack(orientation, convert);
+        console.log(this.layout);
+        console.log(convert);
+        let newTile = {};
+        newTile[[row, col]] = true;// This is wrong for now, because of the conversions
+        return newTile;
     }
+
     getLayoutSquare(i, j)
     {
         if(this.isAlongCol)
@@ -169,11 +296,120 @@ export class Game{
         else
             return this.layout[i][this.startIndex + (j*this.multiplier)];
     }
+
     calcCoords(i, j)
     {
         if(this.isAlongCol)
             return [this.startIndex + (j*this.multiplier), i];
         else return [i, this.startIndex + (j*this.multiplier)];
+    }
+
+    convertLayout(orientation)
+    {
+        let convert = copy2DArray(this.layout);
+        switch(orientation)
+        {
+            case "NEW": break;
+
+            case "NES": //this is a transposition and then a reversal of both arrays.
+                convert = transpose(convert);
+                convert = convert.reverse();
+                convert = convert.map(row => row.reverse());
+                break;
+            case "SEN": //this is a transposition and a reversal of the order of rows
+                convert = transpose(convert);
+                convert = convert.reverse();
+                break;
+            case "SEW": // this is just a reversal of the order of rows.
+                convert = convert.reverse();
+                break;
+            case "SWE": // this is a reversal of both arrays
+                convert = convert.reverse();
+                convert = convert.map(row => row.reverse());
+                break;
+            case "SWN": // this is a transposition
+                convert = transpose(convert);
+                break;
+            case "NWS": // this is a transposition and a reversal of the rows.
+                convert = transpose(convert);
+                convert = convert.map(row => row.reverse());
+            case "NWE": // this is just a reversal of rows
+                convert = convert.map(row => row.reverse());
+            
+        }
+        return convert;
+        
+
+        
+        
+    }
+    convertBack(orientation, grid)
+    {
+        let convert = copy2DArray(grid);
+        switch(orientation)
+        {
+            case "NEW": break;
+
+            case "NES": //this is a transposition and then a reversal of both arrays.
+                convert = convert.map(row => row.reverse());       
+                convert = convert.reverse();
+                convert = transpose(convert);
+                break;
+            case "SEN": //this is a transposition and a reversal of the order of rows
+                convert = convert.reverse();    
+                convert = transpose(convert);
+                break;
+            case "SEW": // this is just a reversal of the order of rows.
+                convert = convert.reverse();
+                break;
+            case "SWE": // this is a reversal of both arrays
+                convert = convert.map(row => row.reverse());    
+                convert = convert.reverse();
+                break;
+            case "SWN": // this is a transposition
+                convert = transpose(convert);
+                break;
+            case "NWS": // this is a transposition and a reversal of the rows.
+                convert = convert.map(row => row.reverse());    
+                convert = transpose(convert);
+            case "NWE": // this is just a reversal of rows
+                convert = convert.map(row => row.reverse());
+            
+        }
+        return convert;
+    }
+    convertCoords(orientation, coords)
+    {
+        switch(orientation)
+        {
+            case "NEW": break;
+
+            case "NES": //this is a transposition and then a reversal of both arrays.
+                convert = transpose(convert);
+                convert = convert.reverse();
+                convert = convert.map(row => row.reverse());
+                break;
+            case "SEN": //this is a transposition and a reversal of the order of rows
+                convert = transpose(convert);
+                convert = convert.reverse();
+                break;
+            case "SEW": // this is just a reversal of the order of rows.
+                convert = convert.reverse();
+                break;
+            case "SWE": // this is a reversal of both arrays
+                convert = convert.reverse();
+                convert = convert.map(row => row.reverse());
+                break;
+            case "SWN": // this is a transposition
+                convert = transpose(convert);
+                break;
+            case "NWS": // this is a transposition and a reversal of the rows.
+                convert = transpose(convert);
+                convert = convert.map(row => row.reverse());
+            case "NWE": // this is just a reversal of rows
+                convert = convert.map(row => row.reverse());
+            
+        }
     }
 }
 

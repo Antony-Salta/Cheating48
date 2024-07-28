@@ -106,3 +106,8 @@
   border-radius: 10%;
   background-color: #333333;
 }
+.whole
+{
+  height: 100%;
+  width: 100%;
+}
