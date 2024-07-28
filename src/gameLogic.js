@@ -182,7 +182,7 @@ export class Game{
         switch(orientation)
         {
             case "NE": orientation += this.layout[0][this._size-2] > this.layout[1][this._size-1] ? "W" : "S"; break;
-            case "SE": orientation += this.layout[this._size-1][this._size-2] > this.layout[this._size-1][this._size-2] ? "W" : "N"; break;
+            case "SE": orientation += this.layout[this._size-1][this._size-2] > this.layout[this._size-2][this._size-1] ? "W" : "N"; break;
             case "SW": orientation += this.layout[this._size-2][0] > this.layout[this._size-1][1] ? "N" : "E"; break;
             case "NW": orientation += this.layout[1][0] > this.layout[0][1] ? "S" : "E"; break;
         }
@@ -285,7 +285,8 @@ export class Game{
         console.log(this.layout);
         console.log(convert);
         let newTile = {};
-        newTile[[row, col]] = true;// This is wrong for now, because of the conversions
+        let coords = this.convertCoords(orientation, [row,col]);
+        newTile[coords] = true;// This is wrong for now, because of the conversions
         return newTile;
     }
 
@@ -315,26 +316,28 @@ export class Game{
                 convert = transpose(convert);
                 convert = convert.reverse();
                 convert = convert.map(row => row.reverse());
-                break;
+            break;
             case "SEN": //this is a transposition and a reversal of the order of rows
                 convert = transpose(convert);
                 convert = convert.reverse();
-                break;
+            break;
             case "SEW": // this is just a reversal of the order of rows.
                 convert = convert.reverse();
-                break;
+            break;
             case "SWE": // this is a reversal of both arrays
                 convert = convert.reverse();
                 convert = convert.map(row => row.reverse());
-                break;
+            break;
             case "SWN": // this is a transposition
                 convert = transpose(convert);
-                break;
+            break;
             case "NWS": // this is a transposition and a reversal of the rows.
                 convert = transpose(convert);
                 convert = convert.map(row => row.reverse());
+            break;
             case "NWE": // this is just a reversal of rows
                 convert = convert.map(row => row.reverse());
+            break;
             
         }
         return convert;
@@ -345,71 +348,78 @@ export class Game{
     }
     convertBack(orientation, grid)
     {
-        let convert = copy2DArray(grid);
+        let revert = copy2DArray(grid);
         switch(orientation)
         {
             case "NEW": break;
 
             case "NES": //this is a transposition and then a reversal of both arrays.
-                convert = convert.map(row => row.reverse());       
-                convert = convert.reverse();
-                convert = transpose(convert);
+                revert = revert.map(row => row.reverse());       
+                revert = revert.reverse();
+                revert = transpose(revert);
                 break;
             case "SEN": //this is a transposition and a reversal of the order of rows
-                convert = convert.reverse();    
-                convert = transpose(convert);
+                revert = revert.reverse();    
+                revert = transpose(revert);
                 break;
             case "SEW": // this is just a reversal of the order of rows.
-                convert = convert.reverse();
+                revert = revert.reverse();
                 break;
             case "SWE": // this is a reversal of both arrays
-                convert = convert.map(row => row.reverse());    
-                convert = convert.reverse();
+                revert = revert.map(row => row.reverse());    
+                revert = revert.reverse();
                 break;
             case "SWN": // this is a transposition
-                convert = transpose(convert);
+                revert = transpose(revert);
                 break;
             case "NWS": // this is a transposition and a reversal of the rows.
-                convert = convert.map(row => row.reverse());    
-                convert = transpose(convert);
+                revert = revert.map(row => row.reverse());    
+                revert = transpose(revert);
+                break;
             case "NWE": // this is just a reversal of rows
-                convert = convert.map(row => row.reverse());
+                revert = revert.map(row => row.reverse());
+                break;
             
         }
-        return convert;
+        return revert;
     }
     convertCoords(orientation, coords)
     {
+        let convert = [...coords];
         switch(orientation)
         {
             case "NEW": break;
 
             case "NES": //this is a transposition and then a reversal of both arrays.
-                convert = transpose(convert);
-                convert = convert.reverse();
-                convert = convert.map(row => row.reverse());
+                convert[0] = coords[1];
+                convert[1] = coords[0];
+                convert[0] = (this._size -1) - convert[0];
+                convert[1] = (this._size -1) - convert[1];
                 break;
             case "SEN": //this is a transposition and a reversal of the order of rows
-                convert = transpose(convert);
-                convert = convert.reverse();
+                convert[0] = coords[1];
+                convert[1] = coords[0];
+                convert[0] = (this._size -1) - convert[0];
                 break;
             case "SEW": // this is just a reversal of the order of rows.
-                convert = convert.reverse();
+                convert[0] = (this._size -1) - convert[0];
                 break;
             case "SWE": // this is a reversal of both arrays
-                convert = convert.reverse();
-                convert = convert.map(row => row.reverse());
+                convert[0] = (this._size -1) - convert[0];
+                convert[1] = (this._size -1) - convert[1];
                 break;
             case "SWN": // this is a transposition
-                convert = transpose(convert);
+                convert[0] = coords[1];
+                convert[1] = coords[0];
                 break;
             case "NWS": // this is a transposition and a reversal of the rows.
-                convert = transpose(convert);
-                convert = convert.map(row => row.reverse());
+                convert[0] = coords[1];
+                convert[1] = coords[0];
+                convert[1] = (this._size -1) - convert[1];
             case "NWE": // this is just a reversal of rows
-                convert = convert.map(row => row.reverse());
-            
+                convert[1] = (this._size -1) - convert[1];
         }
+        return convert
     }
 }
 
