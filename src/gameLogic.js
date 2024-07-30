@@ -432,13 +432,15 @@ export class Game{
             {
                 for (let j = 0; j < this._size; j++) 
                 {
-                    let rightSquare = j < this._size -2 ? convert[i][j+1] : -1; // TODO: have code in to see how many rows down we are, and therefore whether to snake left or right, and use that to determine genNumber based on the value of squares around this.
-                    let downSquare = i < this._size -2 ? convert[i+1][j] : -1;
+                    let rightSquare = j < this._size -1 ? convert[i][j+1] : -1; // TODO: have code in to see how many rows down we are, and therefore whether to snake left or right, and use that to determine genNumber based on the value of squares around this.
+                    let downSquare = i < this._size -1 ? convert[i+1][j] : -1;
                     if(convert[i][j] === null) // there's an issue here of disallowing the spawn of squares if they would be able to merge in the spot they are placed in.
                     {
                         numSpaces++;
-                        if(rightSquare !== genNumber && downSquare !== genNumber)
-                            holes.push([i,j]); // only count it as a hole if it would clog things up if a 2 or 4 is added.
+                        let upSquare = i > 0 ? convert[i-1][j] : -1;
+                        let leftSquare = j > 0 ? convert[i][j-1] : -1;
+                        if(rightSquare !== genNumber && downSquare !== genNumber && leftSquare !== genNumber && upSquare !== genNumber)
+                            holes.push([i,j]); // only count it as a hole if it can't merge in any direction.
                     }
                     else if(convert[i][j] === rightSquare) 
                         numSpaces++;
@@ -448,34 +450,36 @@ export class Game{
             }
             else if(numSpaces === 1 && holes.length === 1) // this is the only case where I have to block a spawn in these conditions
             {
-                let hole = holes[0];
-                discouraged.push(hole);
-                console.log("hole" + hole);
+                
                 let row = i;
                 let foundSquare = false;
-                while( row < this._size && !foundSquare)
+                while( row < this._size && !foundSquare) // this while loop goes through the grid below the row that can form a block and looks to see if there's an actual value beneath. If there isn't, then a spawn has to be blocked.
                 {
                     let col = 0;
                     while(col < this._size && !foundSquare)
                     {
                         if(convert[row][col] !== null)
-                        {
                             foundSquare = true;
-                            let index = 0;
-                            let isFound = false;
-                            while (index < freeSpaces.length && !isFound)
-                            {
-                                isFound = hole.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
-                                index++;
-                            }
-                            if(isFound)
-                                index--;
-                            freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
-                            //This seems to work now, I can't really print debug it though, since all the variables give their end value here.
-                        }
                         col++;
                     }
                     row++;
+                }
+                if(!foundSquare)
+                {
+                    let hole = holes[0];
+                    discouraged.push(hole);
+                    console.log("hole: " + hole);
+                    let index = 0;
+                    let isFound = false;
+                    while (index < freeSpaces.length && !isFound)
+                    {
+                        isFound = hole.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
+                        index++;
+                    }
+                    if(isFound)
+                        index--;
+                    freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                    //This seems to work now, I can't really print debug it though, since all the variables give their end value here.
                 }
                 break;
             }
@@ -510,11 +514,14 @@ export class Game{
                 if(!this.canMove("up", convert) && !this.canMove(horizontal, convert)) // in this case, something has to be added so that an up move, or the correct horizontal move can be made.
                 {
                     // now eliminate spaces from freeSpaces that wouldn't allow a move up or to the correct side.
+                    let changedSpaces = [...freeSpaces];
                     for (let j = 0; j < freeSpaces.length; j++) {
                         const coords = freeSpaces[j];
                         const above = !(coords[0] - 1 < 0) ? convert[coords[0]-1][coords[1]] : -1;
-                        const aside = j !== this._size-1 ? convert[coords[0]][coords[1] + direction] : -1; 
-                        if(above !== null && aside !== null && genNumber !== above && genNumber !== aside)
+                        const aside = j !== this._size-1 ? convert[coords[0]][coords[1] + direction] : -1;
+                        const endPoint = direction === 1? 0 : this._size-1;
+                        const atEnd = coords[0] = i && coords[1] == endPoint;
+                        if(above !== null && aside !== null && genNumber !== above && genNumber !== aside && !atEnd)
                         {
                             discouraged.push(coords);
                             let index = 0;
@@ -526,9 +533,10 @@ export class Game{
                             }
                             if(isFound)
                                 index--;
-                            freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                            changedSpaces.splice(index, 1); // so get rid of that as a viable spawning point
                         }
                     }
+                    freeSpaces = changedSpaces;
                 }
 
                 break;
