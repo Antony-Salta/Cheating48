@@ -501,9 +501,8 @@ export class Game{
             let rowComplete = true;
             for (let j = 0; j < this._size; j++) 
             {
-                let col = direction === 1? j : (this._size-1) - j;
                 
-                if(convert[i][col] === null || ( j <this._size -1 && convert[i][col + direction] === convert[i][col]))
+                if(convert[i][j] === null || ( j < this._size -1 && convert[i][j] === convert[i][j+1]))
                     rowComplete = false;
                 
             }
@@ -520,7 +519,7 @@ export class Game{
                         const above = !(coords[0] - 1 < 0) ? convert[coords[0]-1][coords[1]] : -1;
                         const aside = j !== this._size-1 ? convert[coords[0]][coords[1] + direction] : -1;
                         const endPoint = direction === 1? 0 : this._size-1;
-                        const atEnd = coords[0] = i && coords[1] == endPoint;
+                        const atEnd = coords[0] === i && coords[1] === endPoint;
                         if(above !== null && aside !== null && genNumber !== above && genNumber !== aside && !atEnd)
                         {
                             discouraged.push(coords);
