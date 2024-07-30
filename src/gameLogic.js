@@ -45,7 +45,7 @@ export class Game{
 
             for (let j = 0; j < this._size; j++) 
             {
-                let val = this.getLayoutSquare(i,j);
+                let val = this.getLayoutSquare(i,j, this.layout);
                 if(val !== null)
                 {
                     line.push(val);
@@ -71,7 +71,7 @@ export class Game{
                     { // So when a merge happens, everything needs to move along an extra space after the merged square.
                         if(!hasSkippedFirst)
                         {                    
-                            if(this.getLayoutSquare(i,j) !== null)
+                            if(this.getLayoutSquare(i,j, this.layout) !== null)
                                 hasSkippedFirst = true;
         
                             continue;
@@ -88,7 +88,7 @@ export class Game{
             {
                 //moveCoords will get all of the old coordinates of the squares that need to move, and by how much
                 let coords = this.calcCoords(i,j); 
-                if(this.getLayoutSquare(i,j) !== null && movesNeeded[j] > 0)
+                if(this.getLayoutSquare(i,j, this.layout) !== null && movesNeeded[j] > 0)
                     moveCoords[coords] = movesNeeded[j];
                 
                 let newInsertion = j < line.length ? line[j] : null;
@@ -143,7 +143,7 @@ export class Game{
      */
     generateNewNum()
     {
-        let GenNumber = Math.random() < 0.9 ? 2 : 4;
+        let genNumber = Math.random() < 0.9 ? 2 : 4;
         
         let biggestNum = 0; // tracks the biggest number
         let biggestCoords = []; //tracks where the biggest number is
@@ -202,7 +202,6 @@ export class Game{
         let convert = this.convertLayout(orientation);
         
         let freeSpaces = [];
-        let numFree = 0;
         
         for (let i = 0; i < this._size; i++) {
             for (let j = 0; j < this._size; j++) {
@@ -210,92 +209,44 @@ export class Game{
                 if(num === null)
                 {
                     freeSpaces.push([i,j]);
-                    numFree++;
                 }
             } 
         }
 
+        let discouraged = []
+        
+        this.stopBlocks(convert,freeSpaces,discouraged, genNumber);
+        this.stopRowLeft(convert,freeSpaces,discouraged,genNumber)
+        
 
-        //this will stop a big block of a row or 2 being filled
-        //a space will be considered as one if the value is null or it can merge right or down. It doesn't look in all directions, because then it would get double counted by the square that can merge with it
-        //I need to find if you can find a row or more that only has one space in it (and this space has to be an actual gap with no square in it), and no squares beneath it. in this case, I can't allow a square to be put in that spot
-        let numSpaces = 0;
-        let holes = [];
-        for (let i = 0; i < this._size; i++) 
+
+        let [row, col] = [0,0];
+        if(freeSpaces.length > 0)
         {
-            if(numSpaces === 0)
-            {
-                for (let j = 0; j < this._size; j++) 
-                {
-                    let rightSquare = j < this._size -2 ? convert[i][j+1] : -1; // TODO: have code in to see how many rows down we are, and therefore whether to snake left or right, and use that to determine genNumber based on the value of squares around this.
-                    let downSquare = i < this._size -2 ? convert[i+1][j] : -1;
-                    if(convert[i][j] === null) // there's an issue here of disallowing the spawn of squares if they would be able to merge in the spot they are placed in.
-                    {
-                        numSpaces++;
-                        if(rightSquare !== GenNumber && downSquare !== GenNumber)
-                            holes.push([i,j]); // only count it as a hole if it would clog things up if a 2 or 4 is added.
-                    }
-                    else if(convert[i][j] === rightSquare) 
-                        numSpaces++;
-                    else if(convert[i][j] === downSquare)
-                        numSpaces++;
-                }
-            }
-            else if(numSpaces === 1 && holes.length === 1) // this is the only case where I have to block a spawn in these conditions
-            {
-                let hole = holes[0];
-                let row = i;
-                let foundSquare = false;
-                while( row < this._size && !foundSquare)
-                {
-                    let col = 0;
-                    while(col < this._size && !foundSquare)
-                    {
-                        if(convert[row][col] !== null)
-                        {
-                            foundSquare = true;
-                            let index = 0;
-                            let isFound = false;
-                            while (index < freeSpaces.length && !isFound)
-                            {
-                                isFound = hole.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
-                                index++;
-                            }
-                            if(isFound)
-                                index--;
-                            freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
-                            //This seems to work now, I can't really print debug it though, since all the variables give their end value here.
-                            numFree--;
-                        }
-                        col++;
-                    }
-                    row++;
-                }
-                break;
-            }
-            else
-                break;
+            const random = Math.floor(Math.random() * freeSpaces.length);
+            [row,col] = freeSpaces[random];
         }
-
-        const random = Math.floor(Math.random() * numFree);
-        let [row, col] = freeSpaces[random];
-        console.log(orientation);
-        convert.splice(row, 1, convert[row].toSpliced(col, 1, GenNumber) );
+        else if(discouraged.length > 0)
+        {
+            [row,col] = discouraged.pop(); //TODO: make tiers of priority for this, with a lower number meaning that it shouldn't be used if there's a higher number. Effectively randomly pick from a priority queue.
+        }
+        //I need to have a check after generation to see if the game is over or not, basically seeing if anything can merge.
+        console.log("discouraged: " + discouraged);
+        convert.splice(row, 1, convert[row].toSpliced(col, 1, genNumber) );
         this.layout = this.convertBack(orientation, convert);
-        console.log(this.layout);
-        console.log(convert);
         let newTile = {};
         let coords = this.convertCoords(orientation, [row,col]);
+        console.log("new tile: " + coords);
         newTile[coords] = true;// This is wrong for now, because of the conversions
         return newTile;
     }
 
-    getLayoutSquare(i, j)
+    getLayoutSquare(i, j, layout)
     {
         if(this.isAlongCol)
-            return this.layout[this.startIndex + (j*this.multiplier)][i];
+            return layout[this.startIndex + (j*this.multiplier)][i];
         else
-            return this.layout[i][this.startIndex + (j*this.multiplier)];
+            return layout[i][this.startIndex + (j*this.multiplier)];
     }
 
     calcCoords(i, j)
@@ -420,6 +371,170 @@ export class Game{
                 convert[1] = (this._size -1) - convert[1];
         }
         return convert
+    }
+
+    /**
+     * 
+     * @param {*} direction the direction it is moving in
+     * @param {*} layout the layout that I am testing this with
+     * @returns true if a move in this direction is possible, false otherwise
+     */
+    canMove(direction, layout)
+    {
+
+        this.startIndex = this._size -1; // this gives the starting point to start looking at
+        this.isAlongCol = true;
+        switch(direction)
+        {
+            case "left": this.startIndex = 0; this.isAlongCol = false; break;
+            case "right": this.isAlongCol = false; break;
+            case "up": this.startIndex=0; break;
+            case "down":  break;
+            default: break;
+        }
+        this.multiplier = this.startIndex ===0 ? 1 : -1;
+
+
+        for (let i = 0; i < this._size; i++) 
+        {
+            let line = [];
+            let foundGap = false;
+            for (let j = 0; j < this._size; j++) 
+            {
+                let val = this.getLayoutSquare(i,j, layout);
+                if(val !== null)
+                {
+                    if(foundGap) //so if there's an empty space, and then an actual value, then that value can move in the direction.
+                        return true;
+                    line.push(val);
+                    if(line.length > 1 && line[line.length -1] === line[line.length -2])// if a merge can happen in that direction, return true;
+                        return true
+                } 
+                else
+                    foundGap = true;
+            }
+            
+        }
+        return false;
+        
+    }
+
+    stopBlocks(convert, freeSpaces, discouraged, genNumber)
+    {
+        //this will stop a big block of a row or 2 being filled
+        //a space will be considered as one if the value is null or it can merge right or down. It doesn't look in all directions, because then it would get double counted by the square that can merge with it
+        //I need to find if you can find a row or more that only has one space in it (and this space has to be an actual gap with no square in it), and no squares beneath it. in this case, I can't allow a square to be put in that spot
+        let numSpaces = 0;
+        let holes = [];
+        for (let i = 0; i < this._size; i++) 
+        {
+            if(numSpaces === 0)
+            {
+                for (let j = 0; j < this._size; j++) 
+                {
+                    let rightSquare = j < this._size -2 ? convert[i][j+1] : -1; // TODO: have code in to see how many rows down we are, and therefore whether to snake left or right, and use that to determine genNumber based on the value of squares around this.
+                    let downSquare = i < this._size -2 ? convert[i+1][j] : -1;
+                    if(convert[i][j] === null) // there's an issue here of disallowing the spawn of squares if they would be able to merge in the spot they are placed in.
+                    {
+                        numSpaces++;
+                        if(rightSquare !== genNumber && downSquare !== genNumber)
+                            holes.push([i,j]); // only count it as a hole if it would clog things up if a 2 or 4 is added.
+                    }
+                    else if(convert[i][j] === rightSquare) 
+                        numSpaces++;
+                    else if(convert[i][j] === downSquare)
+                        numSpaces++;
+                }
+            }
+            else if(numSpaces === 1 && holes.length === 1) // this is the only case where I have to block a spawn in these conditions
+            {
+                let hole = holes[0];
+                discouraged.push(hole);
+                console.log("hole" + hole);
+                let row = i;
+                let foundSquare = false;
+                while( row < this._size && !foundSquare)
+                {
+                    let col = 0;
+                    while(col < this._size && !foundSquare)
+                    {
+                        if(convert[row][col] !== null)
+                        {
+                            foundSquare = true;
+                            let index = 0;
+                            let isFound = false;
+                            while (index < freeSpaces.length && !isFound)
+                            {
+                                isFound = hole.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
+                                index++;
+                            }
+                            if(isFound)
+                                index--;
+                            freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                            //This seems to work now, I can't really print debug it though, since all the variables give their end value here.
+                        }
+                        col++;
+                    }
+                    row++;
+                }
+                break;
+            }
+            else
+                break;
+        }
+    }
+
+    stopRowLeft(convert, freeSpaces, discouraged, genNumber)
+    {
+        //The next thing to stop is the player being forced to move the top row away left. This can also be extended to when snaking, stopping that row from having to go right, and so on.
+        // if the row is full of squares, or a merge can happen in that top row (up or right), then this is a non-issue, so remove those options first.
+        //Otherwise, generate a number that eiter fills in the top row, or it allows for some move up or right, either moving across a gap or merging.
+        //If the actual top row is full and no merge right can be made, then this algorithm should look at the next row, and do the same procedure with the direction flipped . If that condition isn't met, then stop
+
+        for (let i = 0; i < this._size; i++) 
+        {
+            let direction = i % 2 === 0? 1 : -1;
+            let rowComplete = true;
+            for (let j = 0; j < this._size; j++) 
+            {
+                let col = direction === 1? j : (this._size-1) - j;
+                
+                if(convert[i][col] === null || ( j <this._size -1 && convert[i][col + direction] === convert[i][col]))
+                    rowComplete = false;
+                
+            }
+
+            if(!rowComplete) // so once the correct row has been found, figure out what needs doing.
+            {
+                let horizontal = direction ===1 ? "right" : "left";
+                if(!this.canMove("up", convert) && !this.canMove(horizontal, convert)) // in this case, something has to be added so that an up move, or the correct horizontal move can be made.
+                {
+                    // now eliminate spaces from freeSpaces that wouldn't allow a move up or to the correct side.
+                    for (let j = 0; j < freeSpaces.length; j++) {
+                        const coords = freeSpaces[j];
+                        const above = !(coords[0] - 1 < 0) ? convert[coords[0]-1][coords[1]] : -1;
+                        const aside = j !== this._size-1 ? convert[coords[0]][coords[1] + direction] : -1; 
+                        if(above !== null && aside !== null && genNumber !== above && genNumber !== aside)
+                        {
+                            discouraged.push(coords);
+                            let index = 0;
+                            let isFound = false;
+                            while (index < freeSpaces.length && !isFound)
+                            {
+                                isFound = coords.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
+                                index++;
+                            }
+                            if(isFound)
+                                index--;
+                            freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                        }
+                    }
+                }
+
+                break;
+            }
+                
+        }
     }
 }
 
