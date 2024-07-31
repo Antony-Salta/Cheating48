@@ -50,7 +50,6 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
       gridStyle.zIndex = zIndex;
     
 
-    //making the key the value means that textFit re-renders, and is assured to be the correct size whenever the value changes.
     return (
       <div ref={domRef} className="quick-pop grid-item" style={gridStyle}>
         {value !== null && 
@@ -60,4 +59,3 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
       </div>
     )
 }
-//<Textfit  key ={value} mode ="single" forceSingleModeWidth={false} min={0.3}>{value}</Textfit>

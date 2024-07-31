@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import { Game } from './gameLogic'
-import { copy2DArray} from './util'
-import Score from './Score'
-import Grid from './Grid'
+import { useState } from 'react';
+import reactLogo from './assets/react.svg';
+import viteLogo from '/vite.svg';
+import './App.css';
+import { Game } from './gameLogic';
+import { copy2DArray} from './util';
+import {useCookies} from 'react-cookie';
+import Score from './Score';
+import Grid from './Grid';
 
 let initialLayout = [];
 const size = 4;
@@ -15,19 +16,27 @@ for(let i=0; i< size; i++)
 }
 
 const moveTime = 120; //time for a move animation in milliseconds, needs to be synced up with what the transition time is in the css file.
-
-const game = new Game(initialLayout);
-game.generateNewNum();
-
+let tempGame = new Game(initialLayout);
+tempGame.generateNewNum();
+initialLayout = tempGame.layout;
 
 
 function App() {
-  let copy = copy2DArray(game.layout);
-  const [score, setScore] = useState(0);
-  const [increase, setIncrease] = useState(0);
+  const [cookies, setCookie, removeCookie] = useCookies(['layout']); 
+  // const [layout, setLayout] = useCookies("layout", new LayoutWrapper(initialLayout)); // need to figure out how to set default values for this cookie.
+  // const [prevLayout, setPrevLayout] = useCookies("prevLayout", null);
+  // const [score, setScore] = useCookies("score", 0);
+  // const [record, setRecord] = useCookies("record", 0);
 
-  const [layout, setLayout] = useState(new LayoutWrapper(copy));
+  const [increase, setIncrease] = useState(0);
   const [prevLayout, setPrevLayout] = useState(null);
+
+  const layout = cookies.layout ?? new LayoutWrapper(initialLayout); // the wonders of not being able to set a normal default value for cookies
+
+
+  const game = new Game(layout.grid); //this might make new objects a ton, but I don't know how to not do that right now
+  //const [layout, setLayout] = useState(new LayoutWrapper(copy));
+  //const [prevLayout, setPrevLayout] = useState(null);
   const [gameUpdates, setGameUpdates] = useState({toPop: {}, newTile: {}, moveCoords : {}});
   const [timeoutID, setTimeoutID] = useState(null);
   const [ID, setID] = useState(-1); //this is used to force a re-render every time things change, so that there aren't weird animation glitches. Not great, but oh well.
@@ -54,7 +63,7 @@ function App() {
           let copy = copy2DArray(layout.grid);
           setPrevLayout(new LayoutWrapper(copy));
           copy = copy2DArray(tempLayout);
-          setLayout(new LayoutWrapper(copy)); 
+          setCookie('layout',new LayoutWrapper(copy)); 
           setID(i => (i + (size*size)) % (size*size*2));
           setGameUpdates(gameUpdates);
           
@@ -70,17 +79,24 @@ function App() {
           }, moveTime));
 
           setIncrease(tempIncrease);
-          setScore(score => score + tempIncrease);
+          setCookie('score', (cookies.score ?? 0) + tempIncrease);
 
       }
-          
-      
-
+        
+  }
+  function reset()
+  {
+    removeCookie('layout');
+    removeCookie('score');
+    removeCookie('record');
   }
 
+
   return (
+    
     <div onKeyDown={(e) => handleKeyDown(e)}  className={"whole"} tabIndex="0" autoFocus={true}>
-      <Score score={score} increase={increase}/>
+      <button onClick={() => reset()}> Reset</button>
+      <Score score={cookies.score ?? 0} increase={increase}/>
       <Grid layout={layout} prevLayout={prevLayout} gameUpdates={gameUpdates} ID={ID} timeoutID={timeoutID} size={size}/>
       
     </div>

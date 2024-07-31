@@ -216,7 +216,7 @@ export class Game{
         let discouraged = []
         
         this.stopBlocks(convert,freeSpaces,discouraged, genNumber);
-        this.stopRowLeft(convert,freeSpaces,discouraged,genNumber)
+        freeSpaces = this.stopRowLeft(convert,freeSpaces,discouraged,genNumber);
         
 
 
@@ -225,18 +225,20 @@ export class Game{
         {
             const random = Math.floor(Math.random() * freeSpaces.length);
             [row,col] = freeSpaces[random];
+            
         }
         else if(discouraged.length > 0)
         {
+            console.log("no good choices");
             [row,col] = discouraged.pop(); //TODO: make tiers of priority for this, with a lower number meaning that it shouldn't be used if there's a higher number. Effectively randomly pick from a priority queue.
         }
         //I need to have a check after generation to see if the game is over or not, basically seeing if anything can merge.
-        console.log("discouraged: " + discouraged);
+        console.log("discouraged: " + discouraged + "    freeSpaces: " + freeSpaces);
+        console.log("new tile: " + [row,col]);
         convert.splice(row, 1, convert[row].toSpliced(col, 1, genNumber) );
         this.layout = this.convertBack(orientation, convert);
         let newTile = {};
         let coords = this.convertCoords(orientation, [row,col]);
-        console.log("new tile: " + coords);
         newTile[coords] = true;// This is wrong for now, because of the conversions
         return newTile;
     }
@@ -494,7 +496,7 @@ export class Game{
         // if the row is full of squares, or a merge can happen in that top row (up or right), then this is a non-issue, so remove those options first.
         //Otherwise, generate a number that eiter fills in the top row, or it allows for some move up or right, either moving across a gap or merging.
         //If the actual top row is full and no merge right can be made, then this algorithm should look at the next row, and do the same procedure with the direction flipped . If that condition isn't met, then stop
-
+        let changedSpaces = [...freeSpaces];
         for (let i = 0; i < this._size; i++) 
         {
             let direction = i % 2 === 0? 1 : -1;
@@ -513,7 +515,7 @@ export class Game{
                 if(!this.canMove("up", convert) && !this.canMove(horizontal, convert)) // in this case, something has to be added so that an up move, or the correct horizontal move can be made.
                 {
                     // now eliminate spaces from freeSpaces that wouldn't allow a move up or to the correct side.
-                    let changedSpaces = [...freeSpaces];
+                    
                     for (let j = 0; j < freeSpaces.length; j++) {
                         const coords = freeSpaces[j];
                         const above = !(coords[0] - 1 < 0) ? convert[coords[0]-1][coords[1]] : -1;
@@ -527,21 +529,24 @@ export class Game{
                             let isFound = false;
                             while (index < freeSpaces.length && !isFound)
                             {
-                                isFound = coords.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
+                                isFound = coords.toString() === changedSpaces[index].toString(); // the wonders of comparing arrays.
                                 index++;
                             }
                             if(isFound)
+                            {
                                 index--;
-                            changedSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                                changedSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                            }
+                                
                         }
                     }
-                    freeSpaces = changedSpaces;
                 }
 
                 break;
             }
                 
         }
+        return changedSpaces;
     }
 }
 
