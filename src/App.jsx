@@ -7,6 +7,7 @@ import { copy2DArray} from './util';
 import {useCookies} from 'react-cookie';
 import Score from './Score';
 import Grid from './Grid';
+import { useSwipeable } from 'react-swipeable';
 
 let initialLayout = [];
 const size = 4;
@@ -44,21 +45,10 @@ function App()
     const [timeoutID, setTimeoutID] = useState(null);
     const [ID, setID] = useState(-1); //this is used to force a re-render every time things change, so that there aren't weird animation glitches. Not great, but oh well.
 
-    function handleKeyDown(e)
+    const handlers = useSwipeable({onSwipedLeft: () => handleMove("left"), onSwipedRight: () => handleMove("right"), onSwipedUp: () => handleMove("up"), onSwipedDown: () => handleMove("down")});
+
+    function handleMove(direction)
     {
-        let direction = "";
-        switch(e.key)
-        {
-            case "ArrowLeft":
-            case "a": direction = "left"; break;
-            case "ArrowRight":
-            case "d": direction = "right"; break;
-            case "ArrowUp":
-            case "w": direction = "up"; break;
-            case "ArrowDown":
-            case "s": direction = "down"; break;
-            default: return null;
-        }
         let [tempLayout,  gameUpdates, tempIncrease] = game.handleMove(direction);
         
         if(gameUpdates.newTile !== false) //so if the board has actually changed.
@@ -86,6 +76,23 @@ function App()
 
         }
             
+    }
+
+    function handleKeyDown(e)
+    {
+        switch(e.key)
+        {
+            case "ArrowLeft":
+            case "a": handleMove("left");break;
+            case "ArrowRight":
+            case "d": handleMove("right"); break;
+            case "ArrowUp":
+            case "w": handleMove("up"); break;
+            case "ArrowDown":
+            case "s": handleMove("down"); break;
+            default: return null;
+        }
+        
     }
     function reset()
     {
@@ -120,7 +127,7 @@ function App()
 
     return (
         
-        <div onKeyDown={(e) => handleKeyDown(e)}  tabIndex="0" autoFocus={true}>
+        <div onKeyDown={(e) => handleKeyDown(e)} {...handlers} style={{touchAction : 'pinch-zoom'}}  tabIndex="0" autoFocus={true}>
             <div>
                 <button onClick={() => reset()}> Reset</button>
                 <button onClick={() => undo()} className={prevLayout === null ? "disabled" : ""} >Undo</button>

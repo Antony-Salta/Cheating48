@@ -16,11 +16,19 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
     }, [shouldPop]);
 
     useLayoutEffect( () => {
-      let rect = domRef.current.getBoundingClientRect();
-      let margin = window.getComputedStyle(domRef.current).marginTop;
-      margin = margin.split("px")[0];
-      margin = Number(margin);
-      setDimensions({height: rect.height +2*margin, width: rect.width + 2*margin})
+        window.addEventListener('resize', updateDimensions);
+        
+        function updateDimensions()
+        {
+            let rect = domRef.current.getBoundingClientRect();
+            let margin = window.getComputedStyle(domRef.current).marginTop;
+            margin = margin.split("px")[0];
+            margin = Number(margin);
+            setDimensions({height: rect.height +2*margin, width: rect.width + 2*margin});
+        }
+        updateDimensions();
+        return () => window.removeEventListener('resize', updateDimensions);
+        
     }, []);
       
     const move = `translate(${xMove * dimensions.width}px, ${yMove * dimensions.height}px)`;
@@ -53,7 +61,7 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
     return (
       <div ref={domRef} className="quick-pop grid-item" style={gridStyle}>
         {value !== null && 
-        <div  className="square" style={squareStyle}>
+        <div className="square" style={squareStyle}>
             {value}
         </div>}
       </div>
