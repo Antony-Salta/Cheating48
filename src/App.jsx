@@ -8,6 +8,7 @@ import {useCookies} from 'react-cookie';
 import Score from './Score';
 import Grid from './Grid';
 import { useSwipeable } from 'react-swipeable';
+import { copy } from '@testing-library/user-event/dist/cjs/clipboard/copy.js';
 
 let initialLayout = [];
 const size = 4;
@@ -30,24 +31,25 @@ function App()
     const [increase, setIncrease] = useState(0);
     const [prevLayout, setPrevLayout] = useState(null);
 
+    
+
     let layout = null;
+    console.log(!cookies.layout);
     if(!cookies.layout)
     {
-        initialLayout = [];
-        for(let i=0; i< size; i++)
-        {
-            initialLayout.push(new Array(size).fill(null));
-        }
         game = new Game(initialLayout);
         game.generateNewNum();
-        layout = new LayoutWrapper(game.layout);
+        let copy = copy2DArray(game.layout);
+        layout = new LayoutWrapper(copy);
     }
     else
         layout = cookies.layout;
 
     useEffect(() =>{
-        game = new Game(layout.grid);
+        if(cookies.layout)
+            game = new Game(layout.grid);
     }, []);
+    
     
     //const [layout, setLayout] = useState(new LayoutWrapper(copy));
     //const [prevLayout, setPrevLayout] = useState(null);

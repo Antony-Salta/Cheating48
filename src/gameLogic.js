@@ -152,7 +152,6 @@ export class Game{
         if(length > 0)
         {
             let newState = this.prevStates.splice(length-1, 1)[0];
-            console.log(newState);
             let prevLayout = length > 1 ? this.prevStates[length-2][0] : false;
             this.layout = copy2DArray(newState[0]);
             return [newState, prevLayout];
@@ -257,7 +256,7 @@ export class Game{
         }
         //I need to have a check after generation to see if the game is over or not, basically seeing if anything can merge.
         console.log("discouraged: " + discouraged + "    freeSpaces: " + freeSpaces);
-        console.log("new tile: " + [row,col]);
+        console.log("new tile (in converted form): " + [row,col]);
         convert.splice(row, 1, convert[row].toSpliced(col, 1, genNumber) );
         this.layout = this.convertBack(orientation, convert);
         let newTile = {};
@@ -348,7 +347,7 @@ export class Game{
             case "SWN": // this is a transposition
                 revert = transpose(revert);
                 break;
-            case "NWS": // this is a transposition and a reversal of the rows.
+            case "NWS": // this is a transposition and a reversal of order of the rows.
                 revert = revert.map(row => row.reverse());    
                 revert = transpose(revert);
                 break;
@@ -389,11 +388,14 @@ export class Game{
                 convert[1] = coords[0];
                 break;
             case "NWS": // this is a transposition and a reversal of the rows.
+                convert[1] = (this._size -1) - convert[1];    
+                coords[1] = convert[1];
                 convert[0] = coords[1];
                 convert[1] = coords[0];
-                convert[1] = (this._size -1) - convert[1];
+                break;
             case "NWE": // this is just a reversal of rows
                 convert[1] = (this._size -1) - convert[1];
+                break;
         }
         return convert
     }
