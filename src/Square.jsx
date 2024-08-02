@@ -30,7 +30,7 @@ export default function Square({bgCol, fontCol, value, shouldPop, xMove =0, yMov
     {
       let length = value.toString().length;
       if(length === 1) // this is just an edge case since single digit ones just seem to take up more space
-        fontSize = dimensions.width + "px";
+        fontSize = dimensions.width * 0.8 + "px";
       else
         fontSize = (dimensions.width * 1.5/length) + "px";
     }

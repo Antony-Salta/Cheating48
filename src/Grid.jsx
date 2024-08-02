@@ -9,8 +9,8 @@ import { copy2DArray } from "./util.js";
  */
 const colourMap = {
     null: ["#888888", "#888888"],
-    2: ["#eee4da", "#333333"],
-    4: ["#ede0c8", "#333333"],
+    2: ["#ccc4ba", "#333333"],
+    4: ["#cdc0a8", "#333333"],
     8: ["#f2b179", "#ffffff"],
     16: ["#f59563", "#ffffff"],
     32: ["#f67c60", "#ffffff"],
@@ -27,7 +27,6 @@ const colourMap = {
 
 export default function Grid({layout, prevLayout, gameUpdates, ID, timeoutID, size =4})
 {
-    
     const isMoving = timeoutID !== null;
     const layoutToUse = isMoving ?  prevLayout : layout; 
     // if(isMoving)

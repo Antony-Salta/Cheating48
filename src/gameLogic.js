@@ -10,6 +10,7 @@ export class Game{
         this.startIndex = null;
         this.isAlongCol = null;
         this.multiplier = null;
+        this.prevStates = [];
     }
 
     handleMove(direction)
@@ -134,9 +135,31 @@ export class Game{
         {
             newTile = this.generateNewNum();
         }
+        this.prevStates.push([prevLayout,increase]);
+        while(this.prevStates.length > 3)
+            this.prevStates.splice(0,1);
+
         return [this.layout, {toPop: toPop, newTile: newTile, moveCoords: moveCoords}, increase];
     }
-    _
+    /**
+     * 
+     * @returns the previous state, which is the layout and the increase that was associated. If there is another state before that, it will also return that, so that the game can know if another undo is possible.
+     */
+    undo()
+    {
+        let length = this.prevStates.length;
+        console.log(length);
+        if(length > 0)
+        {
+            let newState = this.prevStates.splice(length-1, 1)[0];
+            console.log(newState);
+            let prevLayout = length > 1 ? this.prevStates[length-2][0] : false;
+            this.layout = copy2DArray(newState[0]);
+            return [newState, prevLayout];
+        }
+        else
+            return false;
+    }
 
     /**
      * This is going to start simple for now, but there's going to have to be a lot more detection here later
