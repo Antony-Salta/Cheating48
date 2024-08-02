@@ -29,10 +29,9 @@ export default function Grid({layout, prevLayout, gameUpdates, ID, timeoutID, si
 {
     const isMoving = timeoutID !== null;
     const layoutToUse = isMoving ?  prevLayout : layout; 
-    // if(isMoving)
-    //     console.log(gameUpdates.moveCoords);
-    // if (!isMoving)
-    //     console.log(gameUpdates.toPop);
+        
+    if (!isMoving)
+        console.log(gameUpdates.newTile);
     //now I need to have a conditional thing with a timer that renders the moving animation, then the new board after, that can be interrupted if another move is made.
     return (
         <div className="grid-container">

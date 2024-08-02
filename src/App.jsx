@@ -17,10 +17,7 @@ for(let i=0; i< size; i++)
 }
 
 const moveTime = 120; //time for a move animation in milliseconds, needs to be synced up with what the transition time is in the css file.
-let game = new Game(initialLayout);
-game.generateNewNum();
-initialLayout = game.layout;
-
+let game = null;
 
 function App() 
 {
@@ -33,7 +30,20 @@ function App()
     const [increase, setIncrease] = useState(0);
     const [prevLayout, setPrevLayout] = useState(null);
 
-    const layout = cookies.layout ?? new LayoutWrapper(initialLayout); // the wonders of not being able to set a normal default value for cookies
+    let layout = null;
+    if(!cookies.layout)
+    {
+        initialLayout = [];
+        for(let i=0; i< size; i++)
+        {
+            initialLayout.push(new Array(size).fill(null));
+        }
+        game = new Game(initialLayout);
+        game.generateNewNum();
+        layout = new LayoutWrapper(game.layout);
+    }
+    else
+        layout = cookies.layout;
 
     useEffect(() =>{
         game = new Game(layout.grid);
@@ -99,6 +109,11 @@ function App()
         removeCookie('layout');
         removeCookie('score');
         removeCookie('record');
+        setIncrease(0);
+        setGameUpdates({toPop: {}, newTile: {}, moveCoords : {}});
+        setPrevLayout(null);
+        clearTimeout(timeoutID);
+        setTimeoutID(null);
     }
     function undo()
     {
@@ -110,6 +125,7 @@ function App()
         if(states)
         {
             setID(i => (i + (size*size)) % (size*size*2));
+            setIncrease(0);
             let newState =states[0];
             let prevLayout = states[1]; 
             let decrease = newState[1];
