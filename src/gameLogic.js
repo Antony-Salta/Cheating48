@@ -235,8 +235,9 @@ export class Game{
             } 
         }
 
-        let discouraged = []
+        let discouraged = [] // this will be a list of  a list of coords. Each stop function will add their list of coordinates that should not be used.
         
+        //these functions have to run in a specific order, to give a priority of which discouraged spaces should be filled in first
         this.stopBlocks(convert,freeSpaces,discouraged, genNumber);
         freeSpaces = this.stopRowLeft(convert,freeSpaces,discouraged,genNumber);
         
@@ -252,7 +253,9 @@ export class Game{
         else if(discouraged.length > 0)
         {
             console.log("no good choices");
-            [row,col] = discouraged.pop(); //TODO: make tiers of priority for this, with a lower number meaning that it shouldn't be used if there's a higher number. Effectively randomly pick from a priority queue.
+            coordList = discouraged[discouraged.length-1];
+            const random = Math.floor(Math.random() * coordList.length);
+            [row,col] = coordList[random];
         }
         //I need to have a check after generation to see if the game is over or not, basically seeing if anything can merge.
         console.log("discouraged: " + discouraged + "    freeSpaces: " + freeSpaces);
@@ -494,7 +497,7 @@ export class Game{
                 if(!foundSquare)
                 {
                     let hole = holes[0];
-                    discouraged.push(hole);
+                    discouraged.push([hole]);
                     console.log("hole: " + hole);
                     let index = 0;
                     let isFound = false;
@@ -536,11 +539,13 @@ export class Game{
 
             if(!rowComplete) // so once the correct row has been found, figure out what needs doing.
             {
+
                 let horizontal = direction ===1 ? "right" : "left";
                 if(!this.canMove("up", convert) && !this.canMove(horizontal, convert)) // in this case, something has to be added so that an up move, or the correct horizontal move can be made.
                 {
                     // now eliminate spaces from freeSpaces that wouldn't allow a move up or to the correct side.
-                    
+                    let discouragedCoords = [];
+
                     for (let j = 0; j < freeSpaces.length; j++) {
                         const coords = freeSpaces[j];
                         const above = !(coords[0] - 1 < 0) ? convert[coords[0]-1][coords[1]] : -1;
@@ -549,7 +554,7 @@ export class Game{
                         const atEnd = coords[0] === i && coords[1] === endPoint;
                         if(above !== null && aside !== null && genNumber !== above && genNumber !== aside && !atEnd)
                         {
-                            discouraged.push(coords);
+                            discouragedCoords.push(coords);
                             let index = 0;
                             let isFound = false;
                             while (index < freeSpaces.length && !isFound)
@@ -565,6 +570,7 @@ export class Game{
                                 
                         }
                     }
+                    discouraged.push(discouragedCoords);
                 }
 
                 break;

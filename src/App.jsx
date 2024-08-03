@@ -84,8 +84,12 @@ function App()
             }, moveTime));
 
             setIncrease(tempIncrease);
-            setCookie('score', (cookies.score ?? 0) + tempIncrease);
-
+            let newScore = (cookies.score ?? 0) + tempIncrease;
+            setCookie('score', newScore);
+            if(!cookies.record)
+                setCookie('record', newScore);
+            else if( newScore > cookies.record)
+                setCookie('record', newScore);
         }
             
     }
@@ -110,7 +114,6 @@ function App()
     {
         removeCookie('layout');
         removeCookie('score');
-        removeCookie('record');
         setIncrease(0);
         setGameUpdates({toPop: {}, newTile: {}, moveCoords : {}});
         setPrevLayout(null);
@@ -134,6 +137,7 @@ function App()
             let copy = copy2DArray(newState[0]);
             setCookie('layout', new LayoutWrapper(copy));
             setCookie('score', (cookies.score ?? 0) - decrease);
+
             if(prevLayout)
                 setPrevLayout(new LayoutWrapper(copy2DArray(prevLayout)))
             else
@@ -144,14 +148,18 @@ function App()
 
 
     return (
-        
         <div onKeyDown={(e) => handleKeyDown(e)} {...handlers} style={{touchAction : 'pinch-zoom'}}  tabIndex="0" autoFocus={true}>
             <div>
+                <Score score={cookies.score ?? 0} increase={increase}/>
+                <div className="score">
+                    Best: 
+                    <div className="innerScore">{cookies.record ?? 0}</div>
+                
+                </div>
                 <button onClick={() => reset()}> Reset</button>
                 <button onClick={() => undo()} className={prevLayout === null ? "disabled" : ""} >Undo</button>
             </div>
-            <div>
-                <Score score={cookies.score ?? 0} increase={increase}/>
+            <div>  
                 <Grid layout={layout} prevLayout={prevLayout} gameUpdates={gameUpdates} ID={ID} timeoutID={timeoutID} size={size}/>
             </div>
         </div>
