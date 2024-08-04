@@ -548,9 +548,9 @@ export class Game{
 
                     for (let j = 0; j < freeSpaces.length; j++) {
                         const coords = freeSpaces[j];
-                        const above = !(coords[0] - 1 < 0) ? convert[coords[0]-1][coords[1]] : -1;
-                        const aside = j !== this._size-1 ? convert[coords[0]][coords[1] + direction] : -1;
+                        const above = coords[0] - 1 >= 0 ? convert[coords[0]-1][coords[1]] : null; // set it to null if you can't move in that direction
                         const endPoint = direction === 1? 0 : this._size-1;
+                        const aside = coords[1] !== endPoint ? convert[coords[0]][coords[1] + direction] : null;
                         const atEnd = coords[0] === i && coords[1] === endPoint;
                         if(above !== null && aside !== null && genNumber !== above && genNumber !== aside && !atEnd)
                         {
