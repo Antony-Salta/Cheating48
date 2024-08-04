@@ -51,9 +51,9 @@
 
 .grid-item{
   display: inline-grid;
-  height: 16vh;
-  line-height: 16vh;
-  width: 12vh;
+  height: 14.5vh;
+  line-height: 14.5vh;
+  width: 10vh;
   margin: 0.6vh;
   border-radius: 10%;
   background-color: #888888;

@@ -19,6 +19,8 @@ for(let i=0; i< size; i++)
 
 const moveTime = 120; //time for a move animation in milliseconds, needs to be synced up with what the transition time is in the css file.
 let game = null;
+const plus60Years = new Date(Date.now());
+plus60Years.setFullYear(plus60Years.getFullYear() + 60);
 
 function App() 
 {
@@ -68,7 +70,7 @@ function App()
             let copy = copy2DArray(layout.grid);
             setPrevLayout(new LayoutWrapper(copy));
             copy = copy2DArray(tempLayout);
-            setCookie('layout',new LayoutWrapper(copy)); 
+            setCookie('layout',new LayoutWrapper(copy), {expires: plus60Years}); 
             setID(i => (i + (size*size)) % (size*size*2));
             setGameUpdates(gameUpdates);
             
@@ -85,11 +87,11 @@ function App()
 
             setIncrease(tempIncrease);
             let newScore = (cookies.score ?? 0) + tempIncrease;
-            setCookie('score', newScore);
+            setCookie('score', newScore, {expires: plus60Years});
             if(!cookies.record)
-                setCookie('record', newScore);
+                setCookie('record', newScore, {expires: plus60Years});
             else if( newScore > cookies.record)
-                setCookie('record', newScore);
+                setCookie('record', newScore, {expires: plus60Years});
         }
             
     }
@@ -135,8 +137,8 @@ function App()
             let prevLayout = states[1]; 
             let decrease = newState[1];
             let copy = copy2DArray(newState[0]);
-            setCookie('layout', new LayoutWrapper(copy));
-            setCookie('score', (cookies.score ?? 0) - decrease);
+            setCookie('layout', new LayoutWrapper(copy)), {expires: plus60Years};
+            setCookie('score', (cookies.score ?? 0) - decrease, {expires: plus60Years});
 
             if(prevLayout)
                 setPrevLayout(new LayoutWrapper(copy2DArray(prevLayout)))
