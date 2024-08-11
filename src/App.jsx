@@ -33,7 +33,12 @@ function App()
     const [increase, setIncrease] = useState(0);
     const [prevLayout, setPrevLayout] = useState(null);
 
-    
+    // initialLayout = [
+    //                 [null, 8, 512, 1024],
+    //                 [16,32,64,128],
+    //                 [null,null,null,null],
+    //                 [null,null,null,null],
+    //                 ]
 
     let layout = null;
     console.log(!cookies.layout);

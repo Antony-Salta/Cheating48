@@ -480,21 +480,31 @@ export class Game{
             }
             else if(numSpaces === 1 && holes.length === 1) // this is the only case where I have to block a spawn in these conditions
             {
-                
                 let row = i;
-                let foundSquare = false;
-                while( row < this._size && !foundSquare) // this while loop goes through the grid below the row that can form a block and looks to see if there's an actual value beneath. If there isn't, then a spawn has to be blocked.
+                let canMoveAside = false;
+                while( row < this._size && !canMoveAside) // this while loop goes through the grid below the row that can form a block and looks to see if there's a possible move left or right
                 {
+                    
                     let col = 0;
-                    while(col < this._size && !foundSquare)
+                    let prevNum = null;
+                    let isASpace = false;
+                    while(col < this._size && !canMoveAside)
                     {
-                        if(convert[row][col] !== null)
-                            foundSquare = true;
+                        
+                        let num = convert[row][col];
+                        if (num === null)
+                            isASpace = true;
+                        else if(num === prevNum && prevNum !== null) // so if there's a space or if the row is full of squares, but a merge can happen, then it can move aside, otherwise it can't move aside, and we have a problem of a block.
+                            canMoveAside = true;
+                        if(isASpace && num !== null)
+                            canMoveAside = true;
+                            
+                        prevNum = num;
                         col++;
                     }
                     row++;
                 }
-                if(!foundSquare)
+                if(!canMoveAside)
                 {
                     let hole = holes[0];
                     discouraged.push([hole]);
