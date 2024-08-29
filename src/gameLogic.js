@@ -131,15 +131,16 @@ export class Game{
         }
             */
         let newTile = false;
+        let gameOver = false;
         if(!isSame) // If it isn't the same, then a move hasn't actually happened
         {
-            newTile = this.generateNewNum();
+            [newTile, gameOver] = this.generateNewNum();
         }
         this.prevStates.push([prevLayout,increase]);
         while(this.prevStates.length > 3)
             this.prevStates.splice(0,1);
 
-        return [this.layout, {toPop: toPop, newTile: newTile, moveCoords: moveCoords}, increase];
+        return [this.layout, {toPop: toPop, newTile: newTile, moveCoords: moveCoords}, increase, gameOver];
     }
     /**
      * 
@@ -258,14 +259,24 @@ export class Game{
             [row,col] = coordList[random];
         }
         //I need to have a check after generation to see if the game is over or not, basically seeing if anything can merge.
+        for (let i = 0; i < this._size; i++) {
+            for (let j = 0; j < this._size; j++) {
+                f
+            }
+            
+        }
+        
+
         console.log("discouraged: " + discouraged + "    freeSpaces: " + freeSpaces);
         console.log("new tile (in converted form): " + [row,col]);
         convert.splice(row, 1, convert[row].toSpliced(col, 1, genNumber) );
         this.layout = this.convertBack(orientation, convert);
         let newTile = {};
         let coords = this.convertCoords(orientation, [row,col]);
-        newTile[coords] = true;// This is wrong for now, because of the conversions
-        return newTile;
+        newTile[coords] = true;
+
+        let gameOver = !(this.canMove("left",this.layout) || this.canMove("right",this.layout) ||this.canMove("up",this.layout) ||this.canMove("down",this.layout));
+        return [newTile, gameOver];
     }
 
     getLayoutSquare(i, j, layout)

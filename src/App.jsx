@@ -32,13 +32,14 @@ function App()
 
     const [increase, setIncrease] = useState(0);
     const [prevLayout, setPrevLayout] = useState(null);
+    const [gameOver, setGameOver] = useState(false);
 
-    // initialLayout = [
-    //                 [null, 8, 512, 1024],
-    //                 [16,32,64,128],
-    //                 [null,null,null,null],
-    //                 [null,null,null,null],
-    //                 ]
+    initialLayout = [
+                    [2, 8, 512, 1024],
+                    [16,32,64,128],
+                    [8,16,8,16],
+                    [16,8,null,null],
+                    ];
 
     let layout = null;
     console.log(!cookies.layout);
@@ -68,10 +69,12 @@ function App()
 
     function handleMove(direction)
     {
-        let [tempLayout,  gameUpdates, tempIncrease] = game.handleMove(direction);
+        let [tempLayout,  gameUpdates, tempIncrease, tempGameOver] = game.handleMove(direction);
+        
         
         if(gameUpdates.newTile !== false) //so if the board has actually changed.
         {
+            setGameOver(tempGameOver);
             let copy = copy2DArray(layout.grid);
             setPrevLayout(new LayoutWrapper(copy));
             copy = copy2DArray(tempLayout);
@@ -126,6 +129,7 @@ function App()
         setPrevLayout(null);
         clearTimeout(timeoutID);
         setTimeoutID(null);
+        setGameOver(false);
     }
     function undo()
     {
@@ -149,6 +153,7 @@ function App()
                 setPrevLayout(new LayoutWrapper(copy2DArray(prevLayout)))
             else
                 setPrevLayout(null);
+            setGameOver(false);
         } 
 
     }
@@ -166,9 +171,11 @@ function App()
                 <button onClick={() => reset()}> Reset</button>
                 <button onClick={() => undo()} className={prevLayout === null ? "disabled" : ""} >Undo</button>
             </div>
-            <div>  
-                <Grid layout={layout} prevLayout={prevLayout} gameUpdates={gameUpdates} ID={ID} timeoutID={timeoutID} size={size}/>
+            <div className='container'>  
+                <Grid layout={layout} prevLayout={prevLayout} gameUpdates={gameUpdates} ID={ID} timeoutID={timeoutID} size={size} gameOver={gameOver}/>
+                {gameOver && <p className='game-over'> GAME OVER</p>}
             </div>
+            
         </div>
     )
 
