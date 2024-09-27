@@ -34,12 +34,12 @@ function App()
     const [prevLayout, setPrevLayout] = useState(null);
     const [gameOver, setGameOver] = useState(false);
 
-    initialLayout = [
-                    [2, 8, 512, 1024],
-                    [16,32,64,128],
-                    [8,16,8,16],
-                    [16,8,null,null],
-                    ];
+    // initialLayout = [
+    //                 [2, 8, 512, 1024],
+    //                 [16,32,64,128],
+    //                 [8,16,8,16],
+    //                 [16,8,null,null],
+    //                 ];
 
     let layout = null;
     console.log(!cookies.layout);
