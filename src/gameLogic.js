@@ -168,51 +168,9 @@ export class Game{
     {
         let genNumber = Math.random() < 0.9 ? 2 : 4;
         
-        let biggestNum = 0; // tracks the biggest number
-        let biggestCoords = []; //tracks where the biggest number is
-        for (let i = 0; i < this._size; i++) {
-            for (let j = 0; j < this._size; j++) {
-                if(this.layout[i][j] > biggestNum)
-                {
-                    biggestCoords = [i,j];
-                    biggestNum = this.layout[i][j];
-                }
-            }
-            
-        }
-        let orientation = ""; // now the cheating on the generation begins.
-        /*
-        The best way to play 2048 is to set the numbers up in a snaking pattern, with the biggest number in a corner, and then go from there to other side.
-        then wrap back around the other way.
-        so orientation will identify which way the user is snaking, to give the best generation for that. The system is to give the corner, and then where they're going from there.
-        e.g. putting the biggest number in the top right corner and then having the next biggest to the left is NEW, because it is in the North-East corner, going West. 
-        Top right snaking down would be NES, and so on. 
         
-        When describing where to put things, I will describe it as if I'm snaking in a NEW direction, 
-        so something like putting squares "under" the biggest number means perpendicular to the direction that the first row/column is filled.
-        */
-        //so this will get the corner that they're favouring
-        if(biggestCoords[0] < this._size /2)
-            orientation += "N";
-        else
-            orientation += "S";
-
-        if(biggestCoords[1] < this._size /2)
-            orientation += "W";
-        else
-            orientation += "E";
-
-        switch(orientation)
-        {
-            case "NE": orientation += this.layout[0][this._size-2] > this.layout[1][this._size-1] ? "W" : "S"; break;
-            case "SE": orientation += this.layout[this._size-1][this._size-2] > this.layout[this._size-2][this._size-1] ? "W" : "N"; break;
-            case "SW": orientation += this.layout[this._size-2][0] > this.layout[this._size-1][1] ? "N" : "E"; break;
-            case "NW": orientation += this.layout[1][0] > this.layout[0][1] ? "S" : "E"; break;
-        }
-        //similar deal here, where if the difference isn't significant the two possible snake locations, then what I identify it as doesn't matter.
-        //There is a possible issue of the biggest number being in some quadrant, but not actually in the corner, and small number being stuck in there.
-        //The goal is to stop that from happening too much, and also skewing generation to allow the player to get out of that (like building a tower under the bigger number so you can move down and push the small number out the way.) 
-
+        
+        let orientation = this.calcOrientation();
         /*TODO:
         - stop big rectangles from being made that can't be merged into itself, because this forces you out of the corner. (It's possible to make it such that the player never has to deal with this, because of how moves and generation works)
         - fill up the row/column that snaking is happening on first/ generate squares that aren't pressed up on the "right", so that you can't make too many moves "right" and be forced to move the main row "left". 
@@ -238,12 +196,9 @@ export class Game{
 
         let discouraged = [] // this will be a list of  a list of coords. Each stop function will add their list of coordinates that should not be used.
         
-        //these functions have to run in a specific order, to give a priority of which discouraged spaces should be filled in first
-        this.stopBlocks(convert,freeSpaces,discouraged, genNumber);
-        freeSpaces = this.stopRowLeft(convert,freeSpaces,discouraged,genNumber);
         
-
-
+        this.discourageSpawns(convert, freeSpaces, discouraged, genNumber);
+        
         let [row, col] = [0,0];
         if(freeSpaces.length > 0)
         {
@@ -258,13 +213,7 @@ export class Game{
             const random = Math.floor(Math.random() * coordList.length);
             [row,col] = coordList[random];
         }
-        //I need to have a check after generation to see if the game is over or not, basically seeing if anything can merge.
-        for (let i = 0; i < this._size; i++) {
-            for (let j = 0; j < this._size; j++) {
-                f
-            }
-            
-        }
+        
         
 
         console.log("discouraged: " + discouraged + "    freeSpaces: " + freeSpaces);
@@ -277,6 +226,64 @@ export class Game{
 
         let gameOver = !(this.canMove("left",this.layout) || this.canMove("right",this.layout) ||this.canMove("up",this.layout) ||this.canMove("down",this.layout));
         return [newTile, gameOver];
+    }
+
+    discourageSpawns(convert, freeSpaces, discouraged, genNumber)
+    {
+        //these functions have to run in a specific order, to give a priority of which discouraged spaces should be filled in first if there are no "free" spaces.
+        // functions running later have a lower priority, so a spawn that makes it so that you can't move left will be allowed before a spawn that makes it so that you have to move down.
+        this.stopBlocks(convert,freeSpaces,discouraged, genNumber);
+        this.stopRowLeft(convert,freeSpaces,discouraged,genNumber);
+    }
+
+    calcOrientation()
+    {
+        let biggestNum = 0; // tracks the biggest number
+        let biggestCoords = []; //tracks where the biggest number is
+        for (let i = 0; i < this._size; i++) {
+            for (let j = 0; j < this._size; j++) {
+                if(this.layout[i][j] > biggestNum)
+                {
+                    biggestCoords = [i,j];
+                    biggestNum = this.layout[i][j];
+                }
+            }
+            
+        }
+        
+        let orientation = ""; // now the cheating on the generation begins.
+        /*
+        The best way to play 2048 is to set the numbers up in a snaking pattern, with the biggest number in a corner, and then go from there to other side.
+        then wrap back around the other way.
+        so orientation will identify which way the user is snaking, to give the best generation for that. The system is to give the corner, and then where they're going from there.
+        e.g. putting the biggest number in the top right corner and then having the next biggest to the left is NEW, because it is in the North-East corner, going West. 
+        Top right snaking down would be NES, and so on. 
+        
+        When describing where to put things, I will describe it as if I'm snaking in a NEW direction, 
+        so something like putting squares "under" the biggest number means perpendicular to the direction that the first row/column is filled.
+        */
+        //so this will get the corner that they're favouring
+        if(biggestCoords[0] < this._size /2)
+            orientation += "N";
+        else
+            orientation += "S";
+
+        if(biggestCoords[1] < this._size /2)
+            orientation += "W";
+        else
+            orientation += "E";
+
+        switch(orientation)
+        { // The >='s mean that the first option will be chosen if the directions they're trailing in are equal. e.g. if the top right corner is 128, and has 32 on both sides, NEW will be chosen over NES
+            case "NE": orientation += this.layout[0][this._size-2] >= this.layout[1][this._size-1] ? "W" : "S"; break;
+            case "SE": orientation += this.layout[this._size-1][this._size-2] >= this.layout[this._size-2][this._size-1] ? "W" : "N"; break;
+            case "SW": orientation += this.layout[this._size-2][0] >= this.layout[this._size-1][1] ? "N" : "E"; break;
+            case "NW": orientation += this.layout[1][0] >= this.layout[0][1] ? "S" : "E"; break;
+        }
+        //similar deal here, where if the difference isn't significant the two possible snake locations, then what I identify it as doesn't matter.
+        //There is a possible issue of the biggest number being in some quadrant, but not actually in the corner, and small number being stuck in there.
+        //The goal is to stop that from happening too much, and also skewing generation to allow the player to get out of that (like building a tower under the bigger number so you can move down and push the small number out the way.) 
+        return orientation;
     }
 
     getLayoutSquare(i, j, layout)
@@ -545,7 +552,6 @@ export class Game{
         // if the row is full of squares, or a merge can happen in that top row (up or right), then this is a non-issue, so remove those options first.
         //Otherwise, generate a number that eiter fills in the top row, or it allows for some move up or right, either moving across a gap or merging.
         //If the actual top row is full and no merge right can be made, then this algorithm should look at the next row, and do the same procedure with the direction flipped . If that condition isn't met, then stop
-        let changedSpaces = [...freeSpaces];
         for (let i = 0; i < this._size; i++) 
         {
             let direction = i % 2 === 0? 1 : -1;
@@ -580,13 +586,13 @@ export class Game{
                             let isFound = false;
                             while (index < freeSpaces.length && !isFound)
                             {
-                                isFound = coords.toString() === changedSpaces[index].toString(); // the wonders of comparing arrays.
+                                isFound = coords.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
                                 index++;
                             }
                             if(isFound)
                             {
                                 index--;
-                                changedSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                                freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
                             }
                                 
                         }
@@ -598,7 +604,6 @@ export class Game{
             }
                 
         }
-        return changedSpaces;
     }
 }
 
