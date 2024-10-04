@@ -109,12 +109,16 @@ function App()
         switch(e.key)
         {
             case "ArrowLeft":
+            case "A":
             case "a": handleMove("left");break;
             case "ArrowRight":
+            case "D":
             case "d": handleMove("right"); break;
             case "ArrowUp":
+            case "W":
             case "w": handleMove("up"); break;
             case "ArrowDown":
+            case "S":
             case "s": handleMove("down"); break;
             default: return null;
         }

@@ -22,8 +22,7 @@ describe('Testing the calcOrientation method with obvious cases', () => {
             [null,null,null,null],
             [null,null,null,null]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('NEW');
+        expect(Game.calcOrientation(layout)).toBe('NEW');
     });
     it('Testing it in the NES direction', () =>{
         let layout = [
@@ -32,8 +31,8 @@ describe('Testing the calcOrientation method with obvious cases', () => {
             [null,null,null,null],
             [null,null,null,null]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('NES');
+        
+        expect(Game.calcOrientation(layout)).toBe('NES');
     });
     it('Testing it in the NWS direction', () =>{
         let layout = [
@@ -42,8 +41,8 @@ describe('Testing the calcOrientation method with obvious cases', () => {
             [null,null,null,null],
             [null,null,null,null]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('NWS');
+        
+        expect(Game.calcOrientation(layout)).toBe('NWS');
     });
     it('Testing it in the NWE direction', () =>{
         let layout = [
@@ -52,8 +51,8 @@ describe('Testing the calcOrientation method with obvious cases', () => {
             [null,null,null,null],
             [null,null,null,null]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('NWE');
+        
+        expect(Game.calcOrientation(layout)).toBe('NWE');
     });
     it('Testing it in the SWN direction', () =>{
         let layout = [
@@ -62,8 +61,8 @@ describe('Testing the calcOrientation method with obvious cases', () => {
             [64,null,null,null],
             [128,32,null,null]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('SWN');
+        
+        expect(Game.calcOrientation(layout)).toBe('SWN');
     });
     it('Testing it in the SWE direction', () =>{
         let layout = [
@@ -72,8 +71,8 @@ describe('Testing the calcOrientation method with obvious cases', () => {
             [8,null,null,null],
             [128,64,16,null]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('SWE');
+        
+        expect(Game.calcOrientation(layout)).toBe('SWE');
     });
     it('Testing it in the SEW direction', () =>{
         let layout = [
@@ -82,8 +81,8 @@ describe('Testing the calcOrientation method with obvious cases', () => {
             [16,8,4,4],
             [32,64,128,256]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('SEW');
+        
+        expect(Game.calcOrientation(layout)).toBe('SEW');
     });
     it('Testing it in the SEN direction', () =>{
         let layout = [
@@ -92,8 +91,8 @@ describe('Testing the calcOrientation method with obvious cases', () => {
             [null,null,null,64],
             [null,null,32,256]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('SEN');
+        
+        expect(Game.calcOrientation(layout)).toBe('SEN');
     });
 });
 
@@ -105,8 +104,8 @@ describe('Testing calcOrientation with equal values on the sides', () => {
             [null,null,null,null],
             [null,null,null,null]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('NEW');
+        
+        expect(Game.calcOrientation(layout)).toBe('NEW');
     });
     it('Testing it in the NW corner, expect to be NWS', () =>{
         let layout = [
@@ -115,8 +114,8 @@ describe('Testing calcOrientation with equal values on the sides', () => {
             [null,null,null,null],
             [null,null,null,null]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('NWS');
+        
+        expect(Game.calcOrientation(layout)).toBe('NWS');
     });
     it('Testing it in the SW corner, expect to be SWN', () =>{
         let layout = [
@@ -125,8 +124,8 @@ describe('Testing calcOrientation with equal values on the sides', () => {
             [32,null,null,null],
             [128,32,2,4]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('SWN');
+        
+        expect(Game.calcOrientation(layout)).toBe('SWN');
     });
     it('Testing it in the SE corner, expect to be SEW', () =>{
         let layout = [
@@ -135,9 +134,216 @@ describe('Testing calcOrientation with equal values on the sides', () => {
             [null,null,null,128],
             [null,null,128,256]
         ];
-        let game = new Game(layout);
-        expect(game.calcOrientation()).toBe('SEW');
+        
+        expect(Game.calcOrientation(layout)).toBe('SEW');
     });
 });
 
-//I'm going to need to make some tests where I can set what's in the grid, and try out moves at certain breakpoints.
+describe('Testing convertLayout makes all layouts convert to be NEW', () => {
+    let baseLayout = [
+        [128,256,512,1024],
+        [64,32,16,8],
+        [null,null,null,4],
+        [null,null,null,null]
+    ]; // This is the layout that everything should be converted to, and I will make the different versions for each orientation.
+    it('Testing that the base layout has an orientation of NEW', () => {
+        expect(Game.calcOrientation(baseLayout)).toBe('NEW');
+    });
+    
+    it('Testing NEW conversion (the same as the base version)', () =>{
+        let layout = [
+            [128,256,512,1024],
+            [64,32,16,8],
+            [null,null,null,4],
+            [null,null,null,null]
+        ];
+        
+        let orientation = Game.calcOrientation(layout);
+        let convert = Game.convertLayout(orientation, layout);
+        expect(convert).toEqual(baseLayout);
+    });
+    it('Testing NES conversion', () =>{
+        let layout = [
+            [null,4,8,1024],
+            [null,null,16,512],
+            [null,null,32,256],
+            [null,null,64,128]
+        ];
+        
+        let orientation = Game.calcOrientation(layout);
+        let convert = Game.convertLayout(orientation, layout);
+        expect(convert).toEqual(baseLayout);
+    });
+    it('Testing SEN conversion', () =>{
+        let layout = [
+            [null,null,64,128],
+            [null,null,32,256],
+            [null,null,16,512],
+            [null,4,8,1024]
+        ];
+        
+        let orientation = Game.calcOrientation(layout);
+        let convert = Game.convertLayout(orientation, layout);
+        expect(convert).toEqual(baseLayout);
+    });
+    it('Testing SEW conversion', () =>{
+        let layout = [
+            [null,null,null,null],
+            [null,null,null,4],
+            [64,32,16,8],
+            [128,256,512,1024]
+        ];
+        
+        let orientation = Game.calcOrientation(layout);
+        let convert = Game.convertLayout(orientation, layout);
+        expect(convert).toEqual(baseLayout);
+    });
+    it('Testing SWE conversion', () =>{
+        let layout = [
+            [null,null,null,null],
+            [4,null,null,null],
+            [8,16,32,64],
+            [1024,512,256,128]
+        ];
+        
+        let orientation = Game.calcOrientation(layout);
+        let convert = Game.convertLayout(orientation, layout);
+        expect(convert).toEqual(baseLayout);
+    });
+    it('Testing SWN conversion', () =>{
+        let layout = [
+            [128,64,null,null],
+            [256,32,null,null],
+            [512,16,null,null],
+            [1024,8,4,null]
+        ];
+        
+        let orientation = Game.calcOrientation(layout);
+        let convert = Game.convertLayout(orientation, layout);
+        expect(convert).toEqual(baseLayout);
+    });
+    it('Testing NWS conversion', () =>{
+        let layout = [
+            [1024,8,4,null],
+            [512,16,null,null],
+            [256,32,null,null],
+            [128,64,null,null]
+        ];
+        
+        let orientation = Game.calcOrientation(layout);
+        let convert = Game.convertLayout(orientation, layout);
+        expect(convert).toEqual(baseLayout);
+    });
+    it('Testing NWE conversion', () =>{
+        let layout = [
+            [1024,512,256,128],
+            [8,16,32,64],
+            [4,null,null,null],
+            [null,null,null,null]
+        ];
+        
+        let orientation = Game.calcOrientation(layout);
+        let convert = Game.convertLayout(orientation, layout);
+        expect(convert).toEqual(baseLayout);
+    });
+});
+
+describe('Testing convertBack makes all layouts convert to be the orientation that they were', () => {
+    
+    let baseLayout = [
+        [128,256,512,1024],
+        [64,32,16,8],
+        [null,null,null,4],
+        [null,null,null,null]
+    ]; // this is the layout that they will all start as, and tehy'll be converted to their own ones.
+
+    it('Testing NEW conversion (the same as the base version)', () =>{
+        let original = [
+            [128,256,512,1024],
+            [64,32,16,8],
+            [null,null,null,4],
+            [null,null,null,null]
+        ];
+        
+        let convert = Game.convertBack('NEW', baseLayout)
+        expect(convert).toEqual(original);
+    });
+    it('Testing NES conversion', () =>{
+        let original = [
+            [null,4,8,1024],
+            [null,null,16,512],
+            [null,null,32,256],
+            [null,null,64,128]
+        ];
+        
+        let convert = Game.convertBack('NES', baseLayout)
+        expect(convert).toEqual(original);
+    });
+    it('Testing SEN conversion', () =>{
+        let original = [
+            [null,null,64,128],
+            [null,null,32,256],
+            [null,null,16,512],
+            [null,4,8,1024]
+        ];
+        
+        let convert = Game.convertBack('SEN', baseLayout)
+        expect(convert).toEqual(original);
+    });
+    it('Testing SEW conversion', () =>{
+        let original = [
+            [null,null,null,null],
+            [null,null,null,4],
+            [64,32,16,8],
+            [128,256,512,1024]
+        ];
+        
+        let convert = Game.convertBack('SEW', baseLayout)
+        expect(convert).toEqual(original);
+    });
+    it('Testing SWE conversion', () =>{
+        let original = [
+            [null,null,null,null],
+            [4,null,null,null],
+            [8,16,32,64],
+            [1024,512,256,128]
+        ];
+        
+        let convert = Game.convertBack('SWE', baseLayout)
+        expect(convert).toEqual(original);
+    });
+    it('Testing SWN conversion', () =>{
+        let original = [
+            [128,64,null,null],
+            [256,32,null,null],
+            [512,16,null,null],
+            [1024,8,4,null]
+        ];
+        
+        let convert = Game.convertBack('SWN', baseLayout)
+        expect(convert).toEqual(original);
+    });
+    it('Testing NWS conversion', () =>{
+        let original = [
+            [1024,8,4,null],
+            [512,16,null,null],
+            [256,32,null,null],
+            [128,64,null,null]
+        ];
+        
+        let convert = Game.convertBack('NWS', baseLayout)
+        expect(convert).toEqual(original);
+    });
+    it('Testing NWE conversion', () =>{
+        let original = [
+            [1024,512,256,128],
+            [8,16,32,64],
+            [4,null,null,null],
+            [null,null,null,null]
+        ];
+        
+        let convert = Game.convertBack('NWE', baseLayout)
+        expect(convert).toEqual(original);
+    });
+});
+

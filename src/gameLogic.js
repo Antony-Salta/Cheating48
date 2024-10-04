@@ -170,7 +170,7 @@ export class Game{
         
         
         
-        let orientation = this.calcOrientation();
+        let orientation = Game.calcOrientation(this.layout);
         /*TODO:
         - stop big rectangles from being made that can't be merged into itself, because this forces you out of the corner. (It's possible to make it such that the player never has to deal with this, because of how moves and generation works)
         - fill up the row/column that snaking is happening on first/ generate squares that aren't pressed up on the "right", so that you can't make too many moves "right" and be forced to move the main row "left". 
@@ -180,7 +180,7 @@ export class Game{
         */
 
         //First things first, it's going to be painful to do all of the different indexing possibilities for each of these, so I'm going to make a local layout copy that converts them all into the NEW direction, and then flip back after.
-        let convert = this.convertLayout(orientation);
+        let convert = Game.convertLayout(orientation, this.layout);
         
         let freeSpaces = [];
         
@@ -219,7 +219,7 @@ export class Game{
         console.log("discouraged: " + discouraged + "    freeSpaces: " + freeSpaces);
         console.log("new tile (in converted form): " + [row,col]);
         convert.splice(row, 1, convert[row].toSpliced(col, 1, genNumber) );
-        this.layout = this.convertBack(orientation, convert);
+        this.layout = Game.convertBack(orientation, convert);
         let newTile = {};
         let coords = this.convertCoords(orientation, [row,col]);
         newTile[coords] = true;
@@ -236,16 +236,17 @@ export class Game{
         this.stopRowLeft(convert,freeSpaces,discouraged,genNumber);
     }
 
-    calcOrientation()
+    static calcOrientation(layout)
     {
+        let size = layout.length;
         let biggestNum = 0; // tracks the biggest number
         let biggestCoords = []; //tracks where the biggest number is
-        for (let i = 0; i < this._size; i++) {
-            for (let j = 0; j < this._size; j++) {
-                if(this.layout[i][j] > biggestNum)
+        for (let i = 0; i < size; i++) {
+            for (let j = 0; j < size; j++) {
+                if(layout[i][j] > biggestNum)
                 {
                     biggestCoords = [i,j];
-                    biggestNum = this.layout[i][j];
+                    biggestNum = layout[i][j];
                 }
             }
             
@@ -263,22 +264,22 @@ export class Game{
         so something like putting squares "under" the biggest number means perpendicular to the direction that the first row/column is filled.
         */
         //so this will get the corner that they're favouring
-        if(biggestCoords[0] < this._size /2)
+        if(biggestCoords[0] < size /2)
             orientation += "N";
         else
             orientation += "S";
 
-        if(biggestCoords[1] < this._size /2)
+        if(biggestCoords[1] < size /2)
             orientation += "W";
         else
             orientation += "E";
 
         switch(orientation)
         { // The >='s mean that the first option will be chosen if the directions they're trailing in are equal. e.g. if the top right corner is 128, and has 32 on both sides, NEW will be chosen over NES
-            case "NE": orientation += this.layout[0][this._size-2] >= this.layout[1][this._size-1] ? "W" : "S"; break;
-            case "SE": orientation += this.layout[this._size-1][this._size-2] >= this.layout[this._size-2][this._size-1] ? "W" : "N"; break;
-            case "SW": orientation += this.layout[this._size-2][0] >= this.layout[this._size-1][1] ? "N" : "E"; break;
-            case "NW": orientation += this.layout[1][0] >= this.layout[0][1] ? "S" : "E"; break;
+            case "NE": orientation += layout[0][size-2] >= layout[1][size-1] ? "W" : "S"; break;
+            case "SE": orientation += layout[size-1][size-2] >= layout[size-2][size-1] ? "W" : "N"; break;
+            case "SW": orientation += layout[size-2][0] >= layout[size-1][1] ? "N" : "E"; break;
+            case "NW": orientation += layout[1][0] >= layout[0][1] ? "S" : "E"; break;
         }
         //similar deal here, where if the difference isn't significant the two possible snake locations, then what I identify it as doesn't matter.
         //There is a possible issue of the biggest number being in some quadrant, but not actually in the corner, and small number being stuck in there.
@@ -301,9 +302,9 @@ export class Game{
         else return [i, this.startIndex + (j*this.multiplier)];
     }
 
-    convertLayout(orientation)
+    static convertLayout(orientation, layout)
     {
-        let convert = copy2DArray(this.layout);
+        let convert = copy2DArray(layout);
         switch(orientation)
         {
             case "NEW": break;
@@ -342,7 +343,7 @@ export class Game{
         
         
     }
-    convertBack(orientation, grid)
+    static convertBack(orientation, grid)
     {
         let revert = copy2DArray(grid);
         switch(orientation)
