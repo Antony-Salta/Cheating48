@@ -347,3 +347,117 @@ describe('Testing convertBack makes all layouts convert to be the orientation th
     });
 });
 
+describe('Testing convertCoords makes all coordinates go from where they would be in a NEW orientation to where they would be in the original orientation', () => {
+    
+    let baseCoords = [[0,0],[0,1],[0,2],[0,3],
+    [1,0],[1,1],[1,2],[1,3],
+    [2,0],[2,1],[2,2],[2,3],
+    [3,0],[3,1],[3,2],[3,3]
+    ]; // this is the layout that they will all start as, and tehy'll be converted to their own ones.
+
+    it('Testing NEW conversion (the same as the base version)', () =>{
+        let original = [[0,0],[0,1],[0,2],[0,3],
+                        [1,0],[1,1],[1,2],[1,3],
+                        [2,0],[2,1],[2,2],[2,3],
+                        [3,0],[3,1],[3,2],[3,3]
+        ];
+        let comparison = Array(baseCoords.length);
+        for (let i = 0; i < baseCoords.length; i++) {
+            comparison[i] = Game.convertCoords('NEW',baseCoords[i],Math.sqrt(baseCoords.length)); 
+        }
+        
+        expect(comparison).toEqual(original);
+    });
+    it('Testing NES conversion', () =>{
+        let original = [[3,3],[2,3],[1,3],[0,3],
+                        [3,2],[2,2],[1,2],[0,2],
+                        [3,1],[2,1],[1,1],[0,1],
+                        [3,0],[2,0],[1,0],[0,0]
+        ];
+        let comparison = Array(baseCoords.length);
+        for (let i = 0; i < baseCoords.length; i++) {
+            comparison[i] = Game.convertCoords('NES',baseCoords[i],Math.sqrt(baseCoords.length)); 
+        }
+        
+        expect(comparison).toEqual(original);
+    });
+    it('Testing SEN conversion', () =>{
+        let original = [[3,0],[2,0],[1,0],[0,0],
+                        [3,1],[2,1],[1,1],[0,1],
+                        [3,2],[2,2],[1,2],[0,2],
+                        [3,3],[2,3],[1,3],[0,3]
+        ];
+        let comparison = Array(baseCoords.length);
+        for (let i = 0; i < baseCoords.length; i++) {
+            comparison[i] = Game.convertCoords('SEN',baseCoords[i],Math.sqrt(baseCoords.length)); 
+        }
+        
+        expect(comparison).toEqual(original);
+    });
+    it('Testing SEW conversion', () =>{
+        let original = [[3,0],[3,1],[3,2],[3,3],
+                        [2,0],[2,1],[2,2],[2,3],
+                        [1,0],[1,1],[1,2],[1,3],
+                        [0,0],[0,1],[0,2],[0,3]
+        ];
+        let comparison = Array(baseCoords.length);
+        for (let i = 0; i < baseCoords.length; i++) {
+            comparison[i] = Game.convertCoords('SEW',baseCoords[i],Math.sqrt(baseCoords.length)); 
+        }
+        
+        expect(comparison).toEqual(original);
+    });
+    it('Testing SWE conversion', () =>{
+        let original = [[3,3],[3,2],[3,1],[3,0],
+                        [2,3],[2,2],[2,1],[2,0],
+                        [1,3],[1,2],[1,1],[1,0],
+                        [0,3],[0,2],[0,1],[0,0]
+        ];
+        let comparison = Array(baseCoords.length);
+        for (let i = 0; i < baseCoords.length; i++) {
+            comparison[i] = Game.convertCoords('SWE',baseCoords[i],Math.sqrt(baseCoords.length)); 
+        }
+        
+        expect(comparison).toEqual(original);
+    });
+    it('Testing SWN conversion', () =>{
+        let original = [[0,0],[1,0],[2,0],[3,0],
+                        [0,1],[1,1],[2,1],[3,1],
+                        [0,2],[1,2],[2,2],[3,2],
+                        [0,3],[1,3],[2,3],[3,3]
+        ];
+        let comparison = Array(baseCoords.length);
+        for (let i = 0; i < baseCoords.length; i++) {
+            comparison[i] = Game.convertCoords('SWN',baseCoords[i],Math.sqrt(baseCoords.length)); 
+        }
+        
+        expect(comparison).toEqual(original);
+    });
+    it('Testing NWS conversion', () =>{
+        let original = [[0,3],[1,3],[2,3],[3,3],
+                        [0,2],[1,2],[2,2],[3,2],
+                        [0,1],[1,1],[2,1],[3,1],
+                        [0,0],[1,0],[2,0],[3,0]
+        ];
+        let comparison = Array(baseCoords.length);
+        for (let i = 0; i < baseCoords.length; i++) {
+            comparison[i] = Game.convertCoords('NWS',baseCoords[i],Math.sqrt(baseCoords.length)); 
+        }
+        
+        expect(comparison).toEqual(original);
+    });
+    it('Testing NWE conversion', () =>{
+        let original = [[0,3],[0,2],[0,1],[0,0],
+                        [1,3],[1,2],[1,1],[1,0],
+                        [2,3],[2,2],[2,1],[2,0],
+                        [3,3],[3,2],[3,1],[3,0]
+        ];
+        let comparison = Array(baseCoords.length);
+        for (let i = 0; i < baseCoords.length; i++) {
+            comparison[i] = Game.convertCoords('NWE',baseCoords[i], Math.sqrt(baseCoords.length)); 
+        }
+        
+        expect(comparison).toEqual(original);
+    });
+});
+

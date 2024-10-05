@@ -221,7 +221,7 @@ export class Game{
         convert.splice(row, 1, convert[row].toSpliced(col, 1, genNumber) );
         this.layout = Game.convertBack(orientation, convert);
         let newTile = {};
-        let coords = this.convertCoords(orientation, [row,col]);
+        let coords = Game.convertCoords(orientation, [row,col], this._size);
         newTile[coords] = true;
 
         let gameOver = !(this.canMove("left",this.layout) || this.canMove("right",this.layout) ||this.canMove("up",this.layout) ||this.canMove("down",this.layout));
@@ -343,6 +343,12 @@ export class Game{
         
         
     }
+    /**
+     * 
+     * @param {*} orientation, the orientation it should return to
+     * @param {*} grid the layout that should be converted back from NEW orientation
+     * @returns a new unrelated copy of that 2D array, converted back
+     */
     static convertBack(orientation, grid)
     {
         let revert = copy2DArray(grid);
@@ -369,7 +375,7 @@ export class Game{
             case "SWN": // this is a transposition
                 revert = transpose(revert);
                 break;
-            case "NWS": // this is a transposition and a reversal of order of the rows.
+            case "NWS": // this is a reversal of order of the rows and a transposition. 
                 revert = revert.map(row => row.reverse());    
                 revert = transpose(revert);
                 break;
@@ -380,7 +386,14 @@ export class Game{
         }
         return revert;
     }
-    convertCoords(orientation, coords)
+    /**
+     * This converts coordinates generated for the NEW orientation into the original orientation of the grid that the player is playing with.
+     * @param {*} orientation the original orientation of the board
+     * @param {*} coords The coords generated for a new tile, back when the layout was converted into NEW orientation
+     * @param {*} size the length of the grid
+     * @returns 
+     */
+    static convertCoords(orientation, coords, size)
     {
         let convert = [...coords];
         switch(orientation)
@@ -390,33 +403,32 @@ export class Game{
             case "NES": //this is a transposition and then a reversal of both arrays.
                 convert[0] = coords[1];
                 convert[1] = coords[0];
-                convert[0] = (this._size -1) - convert[0];
-                convert[1] = (this._size -1) - convert[1];
+                convert[0] = (size -1) - convert[0];
+                convert[1] = (size -1) - convert[1];
                 break;
             case "SEN": //this is a transposition and a reversal of the order of rows
                 convert[0] = coords[1];
                 convert[1] = coords[0];
-                convert[0] = (this._size -1) - convert[0];
+                convert[0] = (size -1) - convert[0];
                 break;
             case "SEW": // this is just a reversal of the order of rows.
-                convert[0] = (this._size -1) - convert[0];
+                convert[0] = (size -1) - convert[0];
                 break;
             case "SWE": // this is a reversal of both arrays
-                convert[0] = (this._size -1) - convert[0];
-                convert[1] = (this._size -1) - convert[1];
+                convert[0] = (size -1) - convert[0];
+                convert[1] = (size -1) - convert[1];
                 break;
             case "SWN": // this is a transposition
                 convert[0] = coords[1];
                 convert[1] = coords[0];
                 break;
-            case "NWS": // this is a transposition and a reversal of the rows.
-                convert[1] = (this._size -1) - convert[1];    
-                coords[1] = convert[1];
+            case "NWS": // this is a reversal of the order of the rows and a transposition.
+                convert[0] = (size -1) - convert[0];    
+                convert[1] = convert[0]; // breaking from the norm here, because we've already made a change at this point
                 convert[0] = coords[1];
-                convert[1] = coords[0];
                 break;
             case "NWE": // this is just a reversal of rows
-                convert[1] = (this._size -1) - convert[1];
+                convert[1] = (size -1) - convert[1];
                 break;
         }
         return convert
