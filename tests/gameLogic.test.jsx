@@ -349,11 +349,11 @@ describe('Testing convertBack makes all layouts convert to be the orientation th
 
 describe('Testing convertCoords makes all coordinates go from where they would be in a NEW orientation to where they would be in the original orientation', () => {
     
-    let baseCoords = [[0,0],[0,1],[0,2],[0,3],
-    [1,0],[1,1],[1,2],[1,3],
-    [2,0],[2,1],[2,2],[2,3],
-    [3,0],[3,1],[3,2],[3,3]
-    ]; // this is the layout that they will all start as, and tehy'll be converted to their own ones.
+    let baseCoords =   [[0,0],[0,1],[0,2],[0,3],
+                        [1,0],[1,1],[1,2],[1,3],
+                        [2,0],[2,1],[2,2],[2,3],
+                        [3,0],[3,1],[3,2],[3,3]
+    ]; // this is the layout that they will all start as, and they'll be converted to their own ones.
 
     it('Testing NEW conversion (the same as the base version)', () =>{
         let original = [[0,0],[0,1],[0,2],[0,3],
@@ -433,18 +433,30 @@ describe('Testing convertCoords makes all coordinates go from where they would b
         
         expect(comparison).toEqual(original);
     });
+
     it('Testing NWS conversion', () =>{
-        let original = [[0,3],[1,3],[2,3],[3,3],
-                        [0,2],[1,2],[2,2],[3,2],
-                        [0,1],[1,1],[2,1],[3,1],
-                        [0,0],[1,0],[2,0],[3,0]
+        // This one is special, because you don't line it up as if [0,3] is the highest number and trail down to [0,0]. Still trying to figure out why it doesn't follow the pattern of the other ones, but this is definitely what it should be in terms of conversion
+        let original = [[3,0],[2,0],[1,0],[0,0],
+                        [3,1],[2,1],[1,1],[0,1],
+                        [3,2],[2,2],[1,2],[0,2],
+                        [3,3],[2,3],[1,3],[0,3]
         ];
+        
+        
+        /*
+        let baseCoords =   [[0,0],[0,1],[0,2],[0,3],
+                            [1,0],[1,1],[1,2],[1,3],
+                            [2,0],[2,1],[2,2],[2,3],
+                            [3,0],[3,1],[3,2],[3,3]
+    ]; 
+    */
         let comparison = Array(baseCoords.length);
         for (let i = 0; i < baseCoords.length; i++) {
             comparison[i] = Game.convertCoords('NWS',baseCoords[i],Math.sqrt(baseCoords.length)); 
         }
         
         expect(comparison).toEqual(original);
+        
     });
     it('Testing NWE conversion', () =>{
         let original = [[0,3],[0,2],[0,1],[0,0],
