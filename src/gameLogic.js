@@ -488,7 +488,7 @@ export class Game{
         //I need to find if you can find a row or more that only has one space in it (and this space has to be an actual gap with no square in it), and no squares beneath it. in this case, I can't allow a square to be put in that spot
         let numSpaces = 0;
         let holes = [];
-        for (let i = 0; i < this._size; i++) 
+        for (let i = 0; i < this._size; i++) //this goes through the rows, first until it finds any space, then if there's only one space by that row, checking if the player can move down by looking at the rows beneath it.
         {
             if(numSpaces === 0)
             {
@@ -496,7 +496,7 @@ export class Game{
                 {
                     let rightSquare = j < this._size -1 ? convert[i][j+1] : -1; // TODO: have code in to see how many rows down we are, and therefore whether to snake left or right, and use that to determine genNumber based on the value of squares around this.
                     let downSquare = i < this._size -1 ? convert[i+1][j] : -1;
-                    if(convert[i][j] === null) // there's an issue here of disallowing the spawn of squares if they would be able to merge in the spot they are placed in.
+                    if(convert[i][j] === null) // there's an issue here of disallowing the spawn of squares if they would be able to merge to the left or up from where they spawn, so this takes care of that edge case
                     {
                         numSpaces++;
                         let upSquare = i > 0 ? convert[i-1][j] : -1;
@@ -520,20 +520,25 @@ export class Game{
                     let col = 0;
                     let prevNum = null;
                     let isASpace = false;
+                    let isATile = false
                     while(col < this._size && !canMoveAside)
                     {
                         
                         let num = convert[row][col];
                         if (num === null)
                             isASpace = true;
-                        else if(num === prevNum && prevNum !== null) // so if there's a space or if the row is full of squares, but a merge can happen, then it can move aside, otherwise it can't move aside, and we have a problem of a block.
+                        else
+                            isATile = true;
+                        if(num === prevNum && prevNum !== null) // If there's a merge possible by 2 non-empty squares being next to each other, then
                             canMoveAside = true;
-                        if(isASpace && num !== null)
+                        if(isASpace && num !== null) // if there's an empty square somewhere in the row, then you find another non-empty square, it can move left.
                             canMoveAside = true;
                             
                         prevNum = num;
                         col++;
                     }
+                    if(isASpace && isATile)// this catches being able to move right when the only empty space is to the right
+                        canMoveAside = true;
                     row++;
                 }
                 if(!canMoveAside)
@@ -560,16 +565,23 @@ export class Game{
         }
     }
 
+    /**
+     *  The next thing to stop is the player being forced to move the top row away left. This can also be extended to when snaking, stopping that row from having to go right, and so on.
+        if the row is full of squares, or a merge can happen in that top row (up or right), then this is a non-issue, so remove those options first.
+        Otherwise, generate a number that eiter fills in the top row, or it allows for some move up or right, either moving across a gap or merging.
+        If the actual top row is full and no merge right can be made, then this algorithm should look at the next row, and do the same procedure with the direction flipped . If that condition isn't met, then stop
+     * @param {*} convert the converted layout to do this algorithm on
+     * @param {*} freeSpaces the coordinates of spaces that are currently considered viable spawning locations
+     * @param {*} discouraged 
+     * @param {*} genNumber 
+     */
     stopRowLeft(convert, freeSpaces, discouraged, genNumber)
     {
-        //The next thing to stop is the player being forced to move the top row away left. This can also be extended to when snaking, stopping that row from having to go right, and so on.
-        // if the row is full of squares, or a merge can happen in that top row (up or right), then this is a non-issue, so remove those options first.
-        //Otherwise, generate a number that eiter fills in the top row, or it allows for some move up or right, either moving across a gap or merging.
-        //If the actual top row is full and no merge right can be made, then this algorithm should look at the next row, and do the same procedure with the direction flipped . If that condition isn't met, then stop
+        
         for (let i = 0; i < this._size; i++) 
         {
             let direction = i % 2 === 0? 1 : -1;
-            let rowComplete = true;
+            let rowComplete = true; // This says whether the row is full of squares that can't move, so if it's false, then it's possible for the row to move left or right.
             for (let j = 0; j < this._size; j++) 
             {
                 
