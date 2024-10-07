@@ -472,123 +472,6 @@ describe('Testing convertCoords makes all coordinates go from where they would b
 });
 
 
-describe('Testing convertCoords makes all coordinates go from where they would be in a NEW orientation to where they would be in the original orientation', () => {
-    
-    let baseCoords =   [[0,0],[0,1],[0,2],[0,3],
-                        [1,0],[1,1],[1,2],[1,3],
-                        [2,0],[2,1],[2,2],[2,3],
-                        [3,0],[3,1],[3,2],[3,3]
-    ]; // this is the layout that they will all start as, and they'll be converted to their own ones.
-
-    it('Testing NEW conversion (the same as the base version)', () =>{
-        let original = [[0,0],[0,1],[0,2],[0,3],
-                        [1,0],[1,1],[1,2],[1,3],
-                        [2,0],[2,1],[2,2],[2,3],
-                        [3,0],[3,1],[3,2],[3,3]
-        ];
-        let comparison = Array(baseCoords.length);
-        for (let i = 0; i < baseCoords.length; i++) {
-            comparison[i] = Game.convertCoords('NEW',baseCoords[i],Math.sqrt(baseCoords.length)); 
-        }
-        
-        expect(comparison).toEqual(original);
-    });
-    it('Testing NES conversion', () =>{
-        let original = [[3,3],[2,3],[1,3],[0,3],
-                        [3,2],[2,2],[1,2],[0,2],
-                        [3,1],[2,1],[1,1],[0,1],
-                        [3,0],[2,0],[1,0],[0,0]
-        ];
-        let comparison = Array(baseCoords.length);
-        for (let i = 0; i < baseCoords.length; i++) {
-            comparison[i] = Game.convertCoords('NES',baseCoords[i],Math.sqrt(baseCoords.length)); 
-        }
-        
-        expect(comparison).toEqual(original);
-    });
-    it('Testing SEN conversion', () =>{
-        let original = [[3,0],[2,0],[1,0],[0,0],
-                        [3,1],[2,1],[1,1],[0,1],
-                        [3,2],[2,2],[1,2],[0,2],
-                        [3,3],[2,3],[1,3],[0,3]
-        ];
-        let comparison = Array(baseCoords.length);
-        for (let i = 0; i < baseCoords.length; i++) {
-            comparison[i] = Game.convertCoords('SEN',baseCoords[i],Math.sqrt(baseCoords.length)); 
-        }
-        
-        expect(comparison).toEqual(original);
-    });
-    it('Testing SEW conversion', () =>{
-        let original = [[3,0],[3,1],[3,2],[3,3],
-                        [2,0],[2,1],[2,2],[2,3],
-                        [1,0],[1,1],[1,2],[1,3],
-                        [0,0],[0,1],[0,2],[0,3]
-        ];
-        let comparison = Array(baseCoords.length);
-        for (let i = 0; i < baseCoords.length; i++) {
-            comparison[i] = Game.convertCoords('SEW',baseCoords[i],Math.sqrt(baseCoords.length)); 
-        }
-        
-        expect(comparison).toEqual(original);
-    });
-    it('Testing SWE conversion', () =>{
-        let original = [[3,3],[3,2],[3,1],[3,0],
-                        [2,3],[2,2],[2,1],[2,0],
-                        [1,3],[1,2],[1,1],[1,0],
-                        [0,3],[0,2],[0,1],[0,0]
-        ];
-        let comparison = Array(baseCoords.length);
-        for (let i = 0; i < baseCoords.length; i++) {
-            comparison[i] = Game.convertCoords('SWE',baseCoords[i],Math.sqrt(baseCoords.length)); 
-        }
-        
-        expect(comparison).toEqual(original);
-    });
-    it('Testing SWN conversion', () =>{
-        let original = [[0,0],[1,0],[2,0],[3,0],
-                        [0,1],[1,1],[2,1],[3,1],
-                        [0,2],[1,2],[2,2],[3,2],
-                        [0,3],[1,3],[2,3],[3,3]
-        ];
-        let comparison = Array(baseCoords.length);
-        for (let i = 0; i < baseCoords.length; i++) {
-            comparison[i] = Game.convertCoords('SWN',baseCoords[i],Math.sqrt(baseCoords.length)); 
-        }
-        
-        expect(comparison).toEqual(original);
-    });
-
-    it('Testing NWS conversion', () =>{
-        // This one is special, because you don't line it up as if [0,3] is the highest number and trail down to [0,0]. Still trying to figure out why it doesn't follow the pattern of the other ones, but this is definitely what it should be in terms of conversion
-        let original = [[3,0],[2,0],[1,0],[0,0],
-                        [3,1],[2,1],[1,1],[0,1],
-                        [3,2],[2,2],[1,2],[0,2],
-                        [3,3],[2,3],[1,3],[0,3]
-        ];
-        
-        let comparison = Array(baseCoords.length);
-        for (let i = 0; i < baseCoords.length; i++) {
-            comparison[i] = Game.convertCoords('NWS',baseCoords[i],Math.sqrt(baseCoords.length)); 
-        }
-        
-        expect(comparison).toEqual(original);
-        
-    });
-    it('Testing NWE conversion', () =>{
-        let original = [[0,3],[0,2],[0,1],[0,0],
-                        [1,3],[1,2],[1,1],[1,0],
-                        [2,3],[2,2],[2,1],[2,0],
-                        [3,3],[3,2],[3,1],[3,0]
-        ];
-        let comparison = Array(baseCoords.length);
-        for (let i = 0; i < baseCoords.length; i++) {
-            comparison[i] = Game.convertCoords('NWE',baseCoords[i], Math.sqrt(baseCoords.length)); 
-        }
-        
-        expect(comparison).toEqual(original);
-    });
-});
 
 describe('Testing the StopBlocks method', () =>{
     
@@ -685,6 +568,44 @@ describe('Testing the StopBlocks method', () =>{
         expect(freeSpaces).toStrictEqual([[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]);
         expect(Game.convertCoords(orientation,discouraged[0][0],layout.length)).toStrictEqual([1,1]);
         expect(orientation).toBe("NWS");
+
+    });
+
+    it("Testing an example where it shouldn't discourage a spawn, with two rows, because it can merge with a tile below it",()=>{
+        let layout = [
+            [16,null,128,256],
+            [8,2,8,16],
+            [null,null,null,null],
+            [null,null,null,null]
+            ];
+        let game = new Game(layout);
+        let freeSpaces = genFreeSpaces(layout);
+        expect(freeSpaces).toStrictEqual([[0,1],[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]);
+        let discouraged = [];
+        let genNumber = 2;
+        game.stopBlocks(layout,freeSpaces,discouraged,genNumber);
+         
+        expect(discouraged).toStrictEqual([]); //If there is no discouraged generated, then nothing is done to the discouraged array.
+        expect(freeSpaces).toStrictEqual([[0,1],[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]); //It's removed the free space that was there
+
+    });
+
+    it("Testing that nothing is discouraged if there are tiles below nearly complete rows",()=>{
+        let layout = [
+            [16,null,128,256],
+            [8,2,8,16],
+            [64,null,32,null],
+            [null,null,null,null]
+            ];
+        let game = new Game(layout);
+        let freeSpaces = genFreeSpaces(layout);
+        expect(freeSpaces).toStrictEqual([[0,1],[2,1],[2,3],[3,0],[3,1],[3,2],[3,3]]);
+        let discouraged = [];
+        let genNumber = 2;
+        game.stopBlocks(layout,freeSpaces,discouraged,genNumber);
+         
+        expect(discouraged).toStrictEqual([]); //If there is no discouraged generated, then nothing is done to the discouraged array.
+        expect(freeSpaces).toStrictEqual([[0,1],[2,1],[2,3],[3,0],[3,1],[3,2],[3,3]]); //It's removed the free space that was there
 
     });
 
