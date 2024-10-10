@@ -242,12 +242,27 @@ export class Game{
         let size = layout.length;
         let biggestNum = 0; // tracks the biggest number
         let biggestCoords = []; //tracks where the biggest number is
+        let manhattanDistance =0; // tracks the manhattan distance of the biggest number from the biggest corner
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size; j++) {
-                if(layout[i][j] > biggestNum)
+                if(layout[i][j] >= biggestNum)
                 {
-                    biggestCoords = [i,j];
-                    biggestNum = layout[i][j];
+                    //now to figure out how far this other biggest number is from the nearest corner, which is needed to prioritise a big number in a corner over one floating in the middle.
+                    let rowDistance = i < size/2 ? i-0 : (size-1) - i;
+                    let colDistance = j < size/2 ? j-0 : (size-1) - j;
+                    let newManhattan = rowDistance + colDistance;
+                    if(layout[i][j] > biggestNum)
+                    {
+                        manhattanDistance = newManhattan;
+                        biggestCoords = [i,j];
+                        biggestNum = layout[i][j];
+                    }
+                    else if(layout[i][j] == biggestNum)
+                    {
+                        biggestCoords = [i,j];
+                        manhattanDistance = newManhattan;
+                    }
+                    
                 }
             }
             
@@ -565,8 +580,9 @@ export class Game{
         }
     }
 
-    /**
-     *  The next thing to stop is the player being forced to move the top row away left. This can also be extended to when snaking, stopping that row from having to go right, and so on.
+    /**  
+     * 
+     * The next thing to stop is the player being forced to move the top row away left. This can also be extended to when snaking, stopping that row from having to go right, and so on.
         if the row is full of squares, or a merge can happen in that top row (up or right), then this is a non-issue, so remove those options first.
         Otherwise, generate a number that eiter fills in the top row, or it allows for some move up or right, either moving across a gap or merging.
         If the actual top row is full and no merge right can be made, then this algorithm should look at the next row, and do the same procedure with the direction flipped . If that condition isn't met, then stop
@@ -599,12 +615,27 @@ export class Game{
                     // now eliminate spaces from freeSpaces that wouldn't allow a move up or to the correct side.
                     let discouragedCoords = [];
 
-                    for (let j = 0; j < freeSpaces.length; j++) {
+                    for (let j = 0; j < freeSpaces.length; j++) 
+                    {
                         const coords = freeSpaces[j];
-                        const above = coords[0] - 1 >= 0 ? convert[coords[0]-1][coords[1]] : null; // set it to null if you can't move in that direction
+                        const above = coords[0] - 1 >= 0 ? convert[coords[0]-1][coords[1]] : -1; // set it to -1 if you can't move in that direction
+                        
                         const endPoint = direction === 1? 0 : this._size-1;
-                        const aside = coords[1] !== endPoint ? convert[coords[0]][coords[1] + direction] : null;
-                        const atEnd = coords[0] === i && coords[1] === endPoint;
+                        const farDirectionSide = direction === 1? this._size-1 : 0;
+                        //The following indexing seems wrong, should have a flipped endPoint, so I need a separate variable for this and atEnd.
+                        const aside = coords[1] !== farDirectionSide ? convert[coords[0]][coords[1] + direction] : -1;
+                        const atEnd = coords[0] === i && coords[1] === endPoint; 
+                        /* atEnd is a special case. If it's on the incomplete row that is currently dictating the horizontal direction, 
+                        and it's on the far side of where the big numbers are grouped, so column 0 if larger numbers are on the right, or vice versa; 
+                        then spawning here will either be fine because it will have an empty space to the right to move into, 
+                        or it will fill up the row, changing the direction needed to go.
+                        This could cause an issue of making a block, but stopBlocks would remove that as a possible spawn, and it's outside the scope of this function anyway
+                        */
+
+
+                        //given that currently, no move up or to the needed direction can happen, a spawn should be discouraged
+                        // If it can't merge up or to the needed side
+                        // and if
                         if(above !== null && aside !== null && genNumber !== above && genNumber !== aside && !atEnd)
                         {
                             discouragedCoords.push(coords);
@@ -619,6 +650,7 @@ export class Game{
                             {
                                 index--;
                                 freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                                j--; //This actually doesn't need to happen, because the space after a discouraged square can never get discouraged itself, but it could maybe cause an error if it's near the end of the freeSpaces list.
                             }
                                 
                         }
