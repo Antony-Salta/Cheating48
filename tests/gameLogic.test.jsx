@@ -571,7 +571,7 @@ describe('Testing the StopBlocks method', () =>{
 
     });
 
-    it("Testing an example where it shouldn't discourage a spawn, with two rows, because it can merge with a tile below it",()=>{
+    it("Testing an example where it shouldn't discourage a spawn, with two rows, because it can merge with a tile below it, because this is quite an extreme edge case",()=>{
         let layout = [
             [16,null,128,256],
             [8,2,8,16],
@@ -606,6 +606,24 @@ describe('Testing the StopBlocks method', () =>{
          
         expect(discouraged).toStrictEqual([]); //If there is no discouraged generated, then nothing is done to the discouraged array.
         expect(freeSpaces).toStrictEqual([[0,1],[2,1],[2,3],[3,0],[3,1],[3,2],[3,3]]); //It's removed the free space that was there
+
+    });
+    it("Testing that nothing is discouraged if there are 2 spaces in the bottom row",()=>{
+        let layout = [
+            [16,8,128,256],
+            [8,null,null,16],
+            [null,null,null,null],
+            [null,null,null,null]
+            ];
+        let game = new Game(layout);
+        let freeSpaces = genFreeSpaces(layout);
+        expect(freeSpaces).toStrictEqual([[1,1],[1,2],[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]);
+        let discouraged = [];
+        let genNumber = 2;
+        game.stopBlocks(layout,freeSpaces,discouraged,genNumber);
+         
+        expect(discouraged).toStrictEqual([]); //If there is no discouraged generated, then nothing is done to the discouraged array.
+        expect(freeSpaces).toStrictEqual([[1,1],[1,2],[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]); //It's removed the free space that was there
 
     });
 
@@ -645,6 +663,25 @@ describe('Testing the StopRowLeft method', () =>{
         //remember that discouraged is an array, of arrays of coords. and coords are themselves an array of length 2.
         expect(discouraged).toStrictEqual([[expectedCoords]]);
         expect(freeSpaces).toStrictEqual([[0,0],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2],[3,0],[3,1],[3,2]]);
+
+    });
+    it('testing an example where it should discourage a spawn that will then stop it from moving up or to the desired side.',()=>{
+        let layout = [
+            [64,256,512,4096],
+            [32,null,null,null],
+            [8,4,null,null],
+            [4,2,null,null]
+            ];
+        let game = new Game(layout);
+        let freeSpaces = genFreeSpaces(layout);
+        expect(freeSpaces).toStrictEqual([[1,1],[1,2],[1,3],[2,2],[2,3],[3,2],[3,3]]);
+        let discouraged = [];
+        let genNumber = 2;
+        game.stopRowLeft(layout,freeSpaces,discouraged,genNumber);
+        let expectedCoords = [1,1];
+        //remember that discouraged is an array, of arrays of coords. and coords are themselves an array of length 2.
+        expect(discouraged).toStrictEqual([[expectedCoords]]);
+        expect(freeSpaces).toStrictEqual([[1,2],[1,3],[2,2],[2,3],[3,2],[3,3]]);
 
     });
    

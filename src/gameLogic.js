@@ -594,10 +594,11 @@ export class Game{
             {
 
                 let horizontal = direction ===1 ? "right" : "left";
+                let discouragedCoords = [];
                 if(!this.canMove("up", convert) && !this.canMove(horizontal, convert)) // in this case, something has to be added so that an up move, or the correct horizontal move can be made.
                 {
                     // now eliminate spaces from freeSpaces that wouldn't allow a move up or to the correct side.
-                    let discouragedCoords = [];
+                    
 
                     for (let j = 0; j < freeSpaces.length; j++) {
                         const coords = freeSpaces[j];
@@ -623,8 +624,39 @@ export class Game{
                                 
                         }
                     }
-                    discouraged.push(discouragedCoords);
+                    
                 }
+                // TODO: Need a fix here to stop spawns, given that you can move up UNTIL you add that next item, then don't allow that item.
+                // also make a test for this case.
+                else
+                {
+                    for (let j = 0; j< freeSpaces.length; j++)
+                    {
+                        const coords = freeSpaces[j]
+                        convert[coords[0]][coords[1]] = genNumber;
+                        if (!this.canMove("up",convert) && !this.canMove(horizontal, convert)) //these comparisons are likely wildly inefficient.
+                        {
+                            discouragedCoords.push(coords);
+                            //following is stupid stuff to remove from an array.
+                            let index = 0;
+                            let isFound = false;
+                            while (index < freeSpaces.length && !isFound)
+                            {
+                                isFound = coords.toString() === freeSpaces[index].toString(); // the wonders of comparing arrays.
+                                index++;
+                            }
+                            if(isFound)
+                            {
+                                index--;
+                                freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
+                            }
+                            //undo the addition, since it was just testing.
+                            convert[coords[0]][coords[1]] = null;
+                        }
+                            
+                    }
+                }
+                discouraged.push(discouragedCoords);
 
                 break;
             }
