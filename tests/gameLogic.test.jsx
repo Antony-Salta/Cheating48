@@ -473,9 +473,7 @@ describe('Testing convertCoords makes all coordinates go from where they would b
 
 
 
-describe('Testing the StopBlocks method', () =>{
-    
-    let genFreeSpaces = (layout) =>
+let genFreeSpaces = (layout) =>
     {
         let freeSpaces =[];
         for (let i = 0; i < layout.length; i++) {
@@ -489,6 +487,9 @@ describe('Testing the StopBlocks method', () =>{
         }
         return freeSpaces;
     }
+
+describe('Testing the StopBlocks method', () =>{
+    
     
     it('testing an example where it should discourage a spawn, with just one row',()=>{
         let layout = [
@@ -631,20 +632,7 @@ describe('Testing the StopBlocks method', () =>{
 
 describe('Testing the StopRowLeft method', () =>{
     
-    let genFreeSpaces = (layout) =>
-    {
-        let freeSpaces =[];
-        for (let i = 0; i < layout.length; i++) {
-            for (let j = 0; j < layout[0].length; j++) {
-                let num = layout[i][j];
-                if(num === null)
-                {
-                    freeSpaces.push([i,j]);
-                }
-            } 
-        }
-        return freeSpaces;
-    }
+    
     
     it('testing an example where it should discourage just 1 spawn in the bottom right corner.',()=>{
         let layout = [
@@ -685,29 +673,119 @@ describe('Testing the StopRowLeft method', () =>{
 
     });
    
-    /*
-    it('testing an example where it should discourage a spawn, with 2 rows and after converting from NWS orientation',()=>{
+    it('testing an example where it should discourage just 1 spawn in the top right corner from NWS orientation.',()=>{
         let layout = [
-            [256,8   ,null,null],
+            [256,2,4,null],
             [128,null,null,null],
-            [8  ,16  ,null,null],
-            [16 ,8   ,null,null]
+            [8,null,null,null],
+            [null,null,null,null]
             ];
-        let game = new Game(layout);
         let orientation = Game.calcOrientation(layout);
+        expect(orientation).toEqual("NWS");
         let convert = Game.convertLayout(orientation,layout);
+        let game = new Game(convert);
         let freeSpaces = genFreeSpaces(convert);
+        //This is the converted stuff, which should be the same as the test above, if left unedited, since I just converted that layout
+        expect(freeSpaces).toStrictEqual([[0,0],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2],[3,0],[3,1],[3,2],[3,3]]);
         let discouraged = [];
         let genNumber = 2;
-        game.stopBlocks(convert,freeSpaces,discouraged,genNumber);
-        let expectedCoords = [1,2]; // this looks stupid, but it will be converted so it will be different.
-         
+        game.stopRowLeft(convert,freeSpaces,discouraged,genNumber);
+        let expectedCoords = [3,3];
+        //remember that discouraged is an array, of arrays of coords. and coords are themselves an array of length 2.
         expect(discouraged).toStrictEqual([[expectedCoords]]);
-        expect(Game.convertCoords(orientation,discouraged[0][0],layout.length)).toStrictEqual([1,1]);
-        expect(orientation).toBe("NWS");
+        expect(freeSpaces).toStrictEqual([[0,0],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2],[3,0],[3,1],[3,2]]);
+        expect(Game.convertCoords(orientation,discouraged[0][0],convert.length)).toStrictEqual([0,3])
+    });
+    
+    it("testing an example where it should be discouraging spawns that don't allow a left or upward move.",()=>{
+        let layout = [
+            [8,16,128,256],
+            [16,8,16,null],
+            [8,null,null,null],
+            [null,null,null,null]
+            ];
+        let game = new Game(layout);
+        let freeSpaces = genFreeSpaces(layout);
+        expect(freeSpaces).toStrictEqual([[1,3],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]);
+        let discouraged = [];
+        let genNumber = 2;
+        game.stopRowLeft(layout,freeSpaces,discouraged,genNumber);
+        let expectedCoords = [[2,1],[3,0]];
+        //remember that discouraged is an array, of arrays of coords. and coords are themselves an array of length 2.
+        expect(discouraged).toStrictEqual([expectedCoords]);
+        expect(freeSpaces).toStrictEqual([[1,3],[2,2],[2,3],[3,1],[3,2],[3,3]]);
 
     });
-    */
 
+    it('testing an example with an ambiguous orientation (should be NEW).',()=>{
+        let layout = [
+            [null,  8,  4,  8],
+            [null,null,null,4],
+            [null,null,null,2],
+            [null,null,null,null]
+            ];
+        let orientation = Game.calcOrientation(layout);
+        expect(orientation).toEqual("NEW");
+        let convert = Game.convertLayout(orientation,layout);
+        let game = new Game(convert);
+        let freeSpaces = genFreeSpaces(convert);
+        expect(freeSpaces).toStrictEqual([[0,0],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2],[3,0],[3,1],[3,2],[3,3]]);
+        let discouraged = [];
+        let genNumber = 2;
+        game.stopRowLeft(convert,freeSpaces,discouraged,genNumber);
+        let expectedCoords = [1,2];
+        //remember that discouraged is an array, of arrays of coords. and coords are themselves an array of length 2.
+        expect(discouraged).toStrictEqual([[expectedCoords]]);
+        expect(freeSpaces).toStrictEqual([[0,0],[1,0],[1,1],[2,0],[2,1],[2,2],[3,0],[3,1],[3,2],[3,3]]);
+
+    });
+
+    it("testing an example With 2 filled rows and nothing else, so stopping any spawn that doesn't allow a rightward move.",()=>{
+        let layout = [
+            [512,1024,2048,4096],
+            [256,128,64,32],
+            [null,null,null,null],
+            [null,null,null,null]
+            ];
+        let game = new Game(layout);
+        let freeSpaces = genFreeSpaces(layout);
+        expect(freeSpaces).toStrictEqual([[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]);
+        let discouraged = [];
+        let genNumber = 2;
+        game.stopRowLeft(layout,freeSpaces,discouraged,genNumber);
+        let expectedCoords = [2,3];
+        //remember that discouraged is an array, of arrays of coords. and coords are themselves an array of length 2.
+        expect(discouraged).toStrictEqual([[expectedCoords]]);
+        expect(freeSpaces).toStrictEqual([[2,0],[2,1],[2,2],[3,0],[3,1],[3,2],[3,3]]);
+
+    });
+    
+
+});
+describe("Testing stopBlocks and stopRowLeft being done together", ()=>{
+    it("Testing an example where stopRowLeft would allow a tile to be placed, but stopBlock would stop it.", ()=>{
+        let layout = [
+            [512,1024,2048,4096],
+            [256,128,64,null],
+            [null,null,null,null],
+            [null,null,null,null]
+            ];
+        let game = new Game(layout);
+        let freeSpaces = genFreeSpaces(layout);
+        expect(freeSpaces).toStrictEqual([[1,3],[2,0],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]);
+        let discouraged = [];
+        let genNumber = 2;
+        game.stopRowLeft(layout,freeSpaces,discouraged,genNumber);
+        let expectedCoords = [[[2,0]]];
+        //remember that discouraged is an array, of arrays of coords. and coords are themselves an array of length 2.
+        expect(discouraged).toStrictEqual(expectedCoords);
+        expect(freeSpaces).toStrictEqual([[1,3],[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]);
+
+        expectedCoords.push([[1,3]]);
+        game.stopBlocks(layout,freeSpaces,discouraged,genNumber);
+        expect(discouraged).toStrictEqual(expectedCoords);
+        expect(freeSpaces).toStrictEqual([[2,1],[2,2],[2,3],[3,0],[3,1],[3,2],[3,3]]);
+
+    });
 });
 
