@@ -682,9 +682,10 @@ export class Game{
                                 index--;
                                 freeSpaces.splice(index, 1); // so get rid of that as a viable spawning point
                             }
-                            //undo the addition, since it was just testing.
-                            convert[coords[0]][coords[1]] = null;
+                            
                         }
+                        //undo the addition, since it was just testing.
+                        convert[coords[0]][coords[1]] = null;
                             
                     }
                 }
